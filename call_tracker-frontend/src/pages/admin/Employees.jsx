@@ -1,10 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaTrash, FaEdit, FaArrowLeft } from "react-icons/fa";
 import bg from "../../assets/images/tech-bg.jpg";
 import api from "../../api/axios";
 
-const initialForm = {
+const createEmptyForm = () => ({
   employee_name: "",
   username: "",
   email: "",
@@ -14,7 +14,7 @@ const initialForm = {
   salary: "",
   password: "",
   is_active: true,
-};
+});
 
 export default function Employees() {
   const navigate = useNavigate();
@@ -24,8 +24,7 @@ export default function Employees() {
   const [showModal, setShowModal] = useState(false);
   const [saving, setSaving] = useState(false);
   const [search, setSearch] = useState("");
-
-  const [form, setForm] = useState(initialForm);
+  const [form, setForm] = useState(createEmptyForm());
 
   useEffect(() => {
     fetchEmployees();
@@ -51,7 +50,7 @@ export default function Employees() {
 
   const openCreate = () => {
     setEditId(null);
-    setForm(initialForm);
+    setForm(createEmptyForm());
     setShowModal(true);
   };
 
@@ -64,7 +63,7 @@ export default function Employees() {
       phone: emp.phone || "",
       department: emp.department || "",
       designation: emp.designation || "Employee",
-      salary: emp.salary || "",
+      salary: emp.salary ?? "",
       password: "",
       is_active: emp.is_active ?? true,
     });
@@ -94,11 +93,11 @@ export default function Employees() {
 
     try {
       const payload = {
-        employee_name: form.employee_name,
-        username: form.username,
-        email: form.email,
-        phone: form.phone,
-        department: form.department,
+        employee_name: form.employee_name.trim(),
+        username: form.username.trim(),
+        email: form.email.trim(),
+        phone: form.phone.trim(),
+        department: form.department.trim(),
         designation: form.designation,
         salary: form.salary,
         is_active: form.is_active,
@@ -128,7 +127,7 @@ export default function Employees() {
 
       setShowModal(false);
       setEditId(null);
-      setForm(initialForm);
+      setForm(createEmptyForm());
     } catch (error) {
       console.log(error.response?.data || error);
       alert("Save failed");
@@ -150,17 +149,20 @@ export default function Employees() {
     }
   };
 
-  const filteredEmployees = employees.filter((emp) => {
+  const filteredEmployees = useMemo(() => {
     const q = search.toLowerCase();
-    return (
-      emp.employee_name?.toLowerCase().includes(q) ||
-      emp.username?.toLowerCase().includes(q) ||
-      emp.email?.toLowerCase().includes(q) ||
-      emp.phone?.toLowerCase().includes(q) ||
-      emp.department?.toLowerCase().includes(q) ||
-      emp.designation?.toLowerCase().includes(q)
-    );
-  });
+
+    return employees.filter((emp) => {
+      return (
+        emp.employee_name?.toLowerCase().includes(q) ||
+        emp.username?.toLowerCase().includes(q) ||
+        emp.email?.toLowerCase().includes(q) ||
+        emp.phone?.toLowerCase().includes(q) ||
+        emp.department?.toLowerCase().includes(q) ||
+        emp.designation?.toLowerCase().includes(q)
+      );
+    });
+  }, [employees, search]);
 
   return (
     <div
@@ -210,25 +212,14 @@ export default function Employees() {
                   {emp.employee_name}
                 </h3>
 
-                <p className="text-xs text-gray-400 truncate">
-                  {emp.username}
-                </p>
-
-                <p className="text-xs text-gray-400 truncate">
-                  {emp.email}
-                </p>
-
-                <p className="text-xs text-gray-400 truncate">
-                  {emp.phone}
-                </p>
-
+                <p className="text-xs text-gray-400 truncate">{emp.username}</p>
+                <p className="text-xs text-gray-400 truncate">{emp.email}</p>
+                <p className="text-xs text-gray-400 truncate">{emp.phone}</p>
                 <p className="text-xs text-gray-400 truncate">
                   {emp.department} • {emp.designation}
                 </p>
 
-                <p className="text-xs text-green-400">
-                  ₹ {emp.salary}
-                </p>
+                <p className="text-xs text-green-400">₹ {emp.salary}</p>
 
                 <span
                   className={`inline-block mt-2 px-2 py-0.5 text-[10px] rounded ${
@@ -335,6 +326,7 @@ export default function Employees() {
 
               <input
                 name="salary"
+                type="number"
                 placeholder="Salary"
                 value={form.salary}
                 onChange={handleChange}

@@ -34,7 +34,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         if user.role == "employee":
             Employee.objects.create(
                 user=user,
-                employee_id=f"EMP{user.id}",
+                employee_id=f"EMP{user.id:03d}",
                 employee_name=user.username,
                 department="Telecaller",
                 designation="Employee",

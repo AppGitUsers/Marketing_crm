@@ -6,4 +6,5 @@ pip
 psycopg2-binary
 PyJWT
 sqlparse
-tzdata                        
+tzdata
+dotenv                        
