@@ -1,6 +1,5 @@
 import { useState,useEffect } from "react";
-import { FaPhoneAlt, FaUserFriends, FaCheckCircle, FaRedoAlt, FaHandshake, FaChartLine } from "react-icons/fa";
-import LoadingButton from "../../components/ui/LoadingButton";
+import { FaPhoneAlt, FaUserFriends, FaCheckCircle, FaRedoAlt, FaHandshake, FaChartLine, FaFolderOpen } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import api from "../../api/axios";
 
@@ -8,6 +7,7 @@ export default function EmployeeDashboard() {
   const [saving, setSaving] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [calls, setCalls] = useState([]);
+  const [projects, setProjects] = useState([]);
   const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
   const [showProfile, setShowProfile] = useState(false);
@@ -69,29 +69,30 @@ export default function EmployeeDashboard() {
     }
   };
   useEffect(() => {
-
     fetchCalls();
-
+    fetchProjects();
   }, []);
 
-  // useEffect(() => {
-  // const fetchProfile = async () => {
-  //   const response = await api.get("accounts/me/");
-  //   setProfile(response.data);
-  // };
-
   useEffect(() => {
-  const fetchProfile = async () => {
-    try {
-      const response = await api.get("accounts/me/");
-      setProfile(response.data);
-    } catch (error) {
-      console.log(error.response?.data);
-    }
-  };
+    const fetchProfile = async () => {
+      try {
+        const response = await api.get("accounts/me/");
+        setProfile(response.data);
+      } catch (error) {
+        console.log(error.response?.data);
+      }
+    };
+    fetchProfile();
+  }, []);
 
-  fetchProfile();
-}, []);
+  const fetchProjects = async () => {
+    try {
+      const res = await api.get("projects/");
+      setProjects(res.data);
+    } catch (err) {
+      console.log(err.response?.data);
+    }
+  };;
 
   const fetchCalls = async () => {
 
@@ -153,6 +154,12 @@ export default function EmployeeDashboard() {
           value: calls.filter(c => c.status === "Closed").length,
           icon: <FaHandshake />,
           route: "/employee/closed-deals",
+        },
+        {
+          title: "Projects",
+          value: projects.length,
+          icon: <FaFolderOpen />,
+          route: "/employee/projects",
         },
       ].map((card, index) => (
         <div
@@ -241,12 +248,14 @@ ${card.route ? "cursor-pointer hover:scale-105" : ""}`}
                   name="project"
                   value={form.project}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 bg-transparent border border-cyan-400 rounded-md text-white"
+                  className="w-full px-4 py-2 bg-[#020617] border border-cyan-400 rounded-md text-white"
                 >
-                  <option className="bg-black">Select Project</option>
-                  <option className="bg-black">Website</option>
-                  <option className="bg-black">Mobile App</option>
-                  <option className="bg-black">CRM</option>
+                  <option value="" className="bg-black">Select Project</option>
+                  {projects.map((p) => (
+                    <option key={p.id} value={p.name} className="bg-black">
+                      {p.name}
+                    </option>
+                  ))}
                 </select>
 
                 <select

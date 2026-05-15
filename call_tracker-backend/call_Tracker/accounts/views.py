@@ -1,7 +1,7 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated, BasePermission
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
 from employees.models import Employee
@@ -9,8 +9,21 @@ from employees.models import Employee
 from .serializers import RegisterSerializer
 
 
+def is_admin_user(user):
+    return bool(
+        user
+        and user.is_authenticated
+        and (getattr(user, "role", None) == "admin" or user.is_superuser)
+    )
+
+
+class IsAdminRole(BasePermission):
+    def has_permission(self, request, view):
+        return is_admin_user(request.user)
+
+
 class RegisterView(APIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated, IsAdminRole]
 
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
@@ -40,11 +53,14 @@ class LoginView(APIView):
 
         refresh = RefreshToken.for_user(user)
 
+        # Superusers are treated as admins throughout the system
+        role = "admin" if (user.is_superuser or getattr(user, "role", None) == "admin") else getattr(user, "role", "employee")
+
         return Response({
             "refresh": str(refresh),
             "access": str(refresh.access_token),
             "username": user.username,
-            "role": user.role,
+            "role": role,
         }, status=status.HTTP_200_OK)
 
 class MeView(APIView):
@@ -53,13 +69,13 @@ class MeView(APIView):
     def get(self, request):
         user = request.user
 
-        if user.role == "admin":
+        if user.is_superuser or getattr(user, "role", None) == "admin":
             return Response({
                 "id": user.id,
                 "username": user.username,
                 "email": user.email,
-                "phone": user.phone,
-                "role": user.role,
+                "phone": getattr(user, "phone", None),
+                "role": "admin",
             })
 
         employee = Employee.objects.filter(user=user).first()

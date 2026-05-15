@@ -7,6 +7,7 @@ export default function MyCalls() {
   const navigate = useNavigate();
 
   const [calls, setCalls] = useState([]);
+  const [projects, setProjects] = useState([]);
   const [editData, setEditData] = useState(null);
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
@@ -27,7 +28,17 @@ export default function MyCalls() {
   // LOAD DATA
   useEffect(() => {
     fetchCalls();
+    fetchProjects();
   }, []);
+
+  const fetchProjects = async () => {
+    try {
+      const res = await api.get("projects/");
+      setProjects(res.data);
+    } catch (err) {
+      console.log(err.response?.data);
+    }
+  };
 
   const fetchCalls = async () => {
     try {
@@ -313,12 +324,14 @@ export default function MyCalls() {
                   name="project"
                   value={form.project}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 bg-transparent border border-cyan-400 rounded-md text-white"
+                  className="w-full px-4 py-2 bg-[#020617] border border-cyan-400 rounded-md text-white"
                 >
                   <option value="" className="bg-black">Select Project</option>
-                  <option value="Website" className="bg-black">Website</option>
-                  <option value="Mobile App" className="bg-black">Mobile App</option>
-                  <option value="CRM" className="bg-black">CRM</option>
+                  {projects.map((p) => (
+                    <option key={p.id} value={p.name} className="bg-black">
+                      {p.name}
+                    </option>
+                  ))}
                 </select>
 
                 <select
@@ -419,11 +432,14 @@ export default function MyCalls() {
                   onChange={(e) =>
                     setEditData({ ...editData, project: e.target.value })
                   }
-                  className="cursor-pointer w-full px-4 py-2 bg-transparent border border-cyan-400 rounded-md text-white"
+                  className="cursor-pointer w-full px-4 py-2 bg-[#020617] border border-cyan-400 rounded-md text-white"
                 >
-                  <option value="Website" className="bg-black">Website</option>
-                  <option value="Mobile App" className="bg-black">Mobile App</option>
-                  <option value="CRM" className="bg-black">CRM</option>
+                  <option value="" className="bg-black">Select Project</option>
+                  {projects.map((p) => (
+                    <option key={p.id} value={p.name} className="bg-black">
+                      {p.name}
+                    </option>
+                  ))}
                 </select>
 
                 <select

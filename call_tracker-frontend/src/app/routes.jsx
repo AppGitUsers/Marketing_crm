@@ -1,7 +1,6 @@
 import { Routes, Route } from "react-router-dom";
 
 import Login from "../pages/auth/Login";
-import Register from "../pages/auth/Register";
 import AuthLayout from "../layouts/AuthLayout";
 
 import EmployeeLayout from "../layouts/EmployeeLayout";
@@ -11,12 +10,14 @@ import FollowUps from "../pages/employee/FollowUps";
 import Leads from "../pages/employee/Leads";
 import Conversions from "../pages/employee/Conversions";
 import ClosedDeals from "../pages/employee/ClosedDeals";
+import Projects from "../pages/employee/Projects";
 
 import AdminLayout from "../layouts/AdminLayout";
 import AdminDashboard from "../pages/admin/AdminDashboard";
 import Employees from "../pages/admin/Employees";
 import Calls from "../pages/admin/Calls";
 import Reports from "../pages/admin/Reports";
+import AdminRegister from "../pages/admin/AdminRegister";
 
 export default function AppRoutes() {
   return (
@@ -24,16 +25,14 @@ export default function AppRoutes() {
 
       {/* AUTH */}
       <Route path="/" element={<AuthLayout><Login /></AuthLayout>} />
-      <Route path="/register" element={<AuthLayout><Register /></AuthLayout>} />
 
-      {/* 🔥 ADMIN (FIXED) */}
+      {/* ADMIN */}
       <Route path="/admin" element={<AdminLayout />}>
-
         <Route path="dashboard" element={<AdminDashboard />} />
         <Route path="employees" element={<Employees />} />
         <Route path="calls" element={<Calls />} />
         <Route path="reports" element={<Reports />} />
-
+        <Route path="register" element={<AdminRegister />} />
       </Route>
 
       {/* EMPLOYEE */}
@@ -43,6 +42,7 @@ export default function AppRoutes() {
       <Route path="/employee/leads" element={<EmployeeLayout><Leads /></EmployeeLayout>} />
       <Route path="/employee/conversions" element={<EmployeeLayout><Conversions /></EmployeeLayout>} />
       <Route path="/employee/closed-deals" element={<EmployeeLayout><ClosedDeals /></EmployeeLayout>} />
+      <Route path="/employee/projects" element={<EmployeeLayout><Projects /></EmployeeLayout>} />
 
     </Routes>
   );

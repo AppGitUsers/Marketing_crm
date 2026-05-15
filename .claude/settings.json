@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(Get-ChildItem -Path \"d:\\\\Projects\\\\Marketing_crm\" -Force | Select-Object Name, @{Name='Type';Expression={if\\($_.PSIsContainer\\){'DIR'}else{'FILE'}}} | Format-Table -AutoSize)",
+      "PowerShell(Get-ChildItem -Recurse \"d:\\\\Projects\\\\Marketing_crm\\\\call_tracker-backend\" -Directory | Select-Object -ExpandProperty FullName | ForEach-Object { $_.Replace\\('d:\\\\Projects\\\\Marketing_crm\\\\call_tracker-backend\\\\', ''\\) } | Sort-Object)",
+      "PowerShell(Get-ChildItem -Recurse \"d:\\\\Projects\\\\Marketing_crm\\\\call_tracker-frontend\" -Directory | Select-Object -ExpandProperty FullName | ForEach-Object { $_.Replace\\('d:\\\\Projects\\\\Marketing_crm\\\\call_tracker-frontend\\\\', ''\\) } | Sort-Object)"
+    ]
+  }
+}
