@@ -1,258 +1,151 @@
 import { useEffect, useState } from "react";
-import {
-  FaPhoneAlt,
-  FaChartLine,
-  FaCheckCircle,
-  FaClock,
-  FaExclamationTriangle,
-} from "react-icons/fa";
-
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
-
+import { FaPhoneAlt, FaChartLine, FaCheckCircle, FaClock, FaExclamationTriangle } from "react-icons/fa";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import api from "../../api/axios";
 
 export default function Reports() {
   const [report, setReport] = useState(null);
 
-  useEffect(() => {
-    fetchReports();
-  }, []);
+  useEffect(() => { fetchReports(); }, []);
 
   const fetchReports = async () => {
     try {
-      const response = await api.get("admin/reports/");
-      setReport(response.data);
-    } catch (error) {
-      console.log(error.response?.data || error);
-    }
+      const res = await api.get("admin/reports/");
+      setReport(res.data);
+    } catch (e) { console.log(e.response?.data || e); }
   };
 
   if (!report) {
     return (
-      <div className="text-cyan-300 text-center py-10">
-        Loading reports...
+      <div className="flex items-center justify-center py-16">
+        <div className="flex items-center gap-3 text-slate-400">
+          <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+          Loading reports...
+        </div>
       </div>
     );
   }
 
   const chartData = [
-    {
-      name: "Leads",
-      value: report.leads,
-    },
-    {
-      name: "Conversions",
-      value: report.conversions,
-    },
-    {
-      name: "Closed",
-      value: report.closed_deals,
-    },
+    { name: "Leads",       value: report.leads },
+    { name: "Conversions", value: report.conversions },
+    { name: "Closed",      value: report.closed_deals },
+  ];
+
+  const summaryCards = [
+    { label: "Total Calls",     value: report.total_calls,       icon: <FaPhoneAlt />,            color: "text-blue-400",   bg: "bg-blue-500/10" },
+    { label: "Leads",           value: report.leads,             icon: <FaChartLine />,           color: "text-yellow-400", bg: "bg-yellow-500/10" },
+    { label: "Conversions",     value: report.conversions,       icon: <FaCheckCircle />,         color: "text-green-400",  bg: "bg-green-500/10" },
+    { label: "Today Follow-ups",value: report.today_followups,   icon: <FaClock />,               color: "text-slate-300",  bg: "bg-slate-500/10" },
+    { label: "Overdue",         value: report.overdue_followups, icon: <FaExclamationTriangle />, color: "text-red-400",    bg: "bg-red-500/10" },
   ];
 
   return (
     <div>
-      <h2 className="text-2xl text-cyan-300 mb-6">
-        Reports & Analytics
-      </h2>
+      <div className="mb-6">
+        <h1 className="text-xl font-semibold text-white">Reports & Analytics</h1>
+        <p className="text-sm text-slate-400 mt-0.5">Overview of CRM performance</p>
+      </div>
 
-      {/* SUMMARY */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
-
-        <div className="bg-white/10 p-4 rounded-xl border border-cyan-400/30 shadow-[0_0_10px_#00f0ff]">
-          <FaPhoneAlt className="text-cyan-300 mb-2" />
-          <p className="text-gray-400 text-sm">Total Calls</p>
-
-          <h3 className="text-2xl text-green-400 font-semibold">
-            {report.total_calls}
-          </h3>
-        </div>
-
-        <div className="bg-white/10 p-4 rounded-xl border border-cyan-400/30 shadow-[0_0_10px_#00f0ff]">
-          <FaChartLine className="text-cyan-300 mb-2" />
-          <p className="text-gray-400 text-sm">Leads</p>
-
-          <h3 className="text-2xl text-green-400 font-semibold">
-            {report.leads}
-          </h3>
-        </div>
-
-        <div className="bg-white/10 p-4 rounded-xl border border-cyan-400/30 shadow-[0_0_10px_#00f0ff]">
-          <FaCheckCircle className="text-cyan-300 mb-2" />
-          <p className="text-gray-400 text-sm">Conversions</p>
-
-          <h3 className="text-2xl text-green-400 font-semibold">
-            {report.conversions}
-          </h3>
-        </div>
-
-        <div className="bg-white/10 p-4 rounded-xl border border-cyan-400/30 shadow-[0_0_10px_#00f0ff]">
-          <FaClock className="text-cyan-300 mb-2" />
-          <p className="text-gray-400 text-sm">
-            Today Followups
-          </p>
-
-          <h3 className="text-2xl text-green-400 font-semibold">
-            {report.today_followups}
-          </h3>
-        </div>
-
-        <div className="bg-white/10 p-4 rounded-xl border border-red-400/30 shadow-[0_0_10px_#ff0000]">
-          <FaExclamationTriangle className="text-red-400 mb-2" />
-          <p className="text-gray-400 text-sm">Overdue</p>
-
-          <h3 className="text-2xl text-red-400 font-semibold">
-            {report.overdue_followups}
-          </h3>
-        </div>
-
+      {/* SUMMARY CARDS */}
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+        {summaryCards.map((s) => (
+          <div key={s.label} className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+            <div className={`w-8 h-8 rounded-lg ${s.bg} flex items-center justify-center ${s.color} text-sm mb-3`}>
+              {s.icon}
+            </div>
+            <p className="text-slate-400 text-xs">{s.label}</p>
+            <p className={`text-2xl font-bold mt-0.5 ${s.color}`}>{s.value}</p>
+          </div>
+        ))}
       </div>
 
       {/* CHART */}
-      <div className="bg-white/10 p-5 rounded-xl border border-cyan-400/30 mb-8">
-        <h3 className="text-cyan-300 mb-4">
-          CRM Analytics
-        </h3>
-
-        <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={chartData}>
-            <XAxis dataKey="name" stroke="#67e8f9" />
-            <YAxis stroke="#67e8f9" />
-            <Tooltip />
-
-            <Bar
-              dataKey="value"
-              fill="#22d3ee"
-              radius={[6, 6, 0, 0]}
+      <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 mb-6">
+        <h2 className="text-sm font-semibold text-slate-300 mb-4">CRM Analytics</h2>
+        <ResponsiveContainer width="100%" height={280}>
+          <BarChart data={chartData} margin={{ top: 4, right: 4, left: -10, bottom: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+            <XAxis dataKey="name" stroke="#64748b" tick={{ fontSize: 12 }} />
+            <YAxis stroke="#64748b" tick={{ fontSize: 12 }} />
+            <Tooltip
+              contentStyle={{ background: "#0f172a", border: "1px solid #1e293b", borderRadius: "8px", color: "#f1f5f9", fontSize: 12 }}
+              cursor={{ fill: "rgba(59,130,246,0.08)" }}
             />
+            <Bar dataKey="value" fill="#2563eb" radius={[4, 4, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </div>
 
       {/* EMPLOYEE PERFORMANCE */}
-      <div className="bg-white/10 p-5 rounded-xl border border-cyan-400/30 mb-8">
-
-        <h3 className="text-cyan-300 mb-4">
-          Employee Performance
-        </h3>
-
+      <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden mb-6">
+        <div className="px-4 py-3 border-b border-slate-800">
+          <h2 className="text-sm font-semibold text-slate-300">Employee Performance</h2>
+        </div>
         <div className="overflow-x-auto">
-          <table className="w-full text-white text-sm">
-
-            <thead className="border-b border-cyan-400/30 text-cyan-300">
-              <tr>
-                <th className="text-left py-3">
-                  Employee
-                </th>
-
-                <th>Total Calls</th>
-                <th>Conversions</th>
-                <th>Closed Deals</th>
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-left text-xs text-slate-500 uppercase tracking-wider bg-slate-800/50">
+                <th className="px-4 py-2.5">Employee</th>
+                <th className="px-4 py-2.5 text-center">Total Calls</th>
+                <th className="px-4 py-2.5 text-center">Conversions</th>
+                <th className="px-4 py-2.5 text-center">Closed Deals</th>
               </tr>
             </thead>
-
             <tbody>
               {report.employee_performance.map((emp) => (
-                <tr
-                  key={emp.employee_id}
-                  className="border-b border-gray-700"
-                >
-                  <td className="py-3">
-                    {emp.employee_name}
-                  </td>
-
-                  <td className="text-center">
-                    {emp.total_calls}
-                  </td>
-
-                  <td className="text-center text-green-400">
-                    {emp.conversions}
-                  </td>
-
-                  <td className="text-center text-cyan-400">
-                    {emp.closed_deals}
-                  </td>
+                <tr key={emp.employee_id} className="border-t border-slate-800 hover:bg-slate-800/40 transition-colors">
+                  <td className="px-4 py-3 text-slate-100">{emp.employee_name}</td>
+                  <td className="px-4 py-3 text-center text-slate-300">{emp.total_calls}</td>
+                  <td className="px-4 py-3 text-center text-green-400">{emp.conversions}</td>
+                  <td className="px-4 py-3 text-center text-slate-400">{emp.closed_deals}</td>
                 </tr>
               ))}
             </tbody>
-
           </table>
         </div>
       </div>
 
-      {/* TODAY FOLLOWUPS */}
-      <div className="bg-white/10 p-5 rounded-xl border border-cyan-400/30 mb-8">
-
-        <h3 className="text-cyan-300 mb-4">
-          Today Followups
-        </h3>
-
-        {report.today_followup_calls.length === 0 ? (
-          <p className="text-gray-400">
-            No followups today
-          </p>
-        ) : (
-          report.today_followup_calls.map((call) => (
-            <div
-              key={call.id}
-              className="border-b border-gray-700 py-3"
-            >
-              <p className="text-white">
-                {call.name}
-              </p>
-
-              <p className="text-sm text-gray-400">
-                {call.phone}
-              </p>
-
-              <p className="text-sm text-cyan-300">
-                Employee: {call.employee_name}
-              </p>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* TODAY FOLLOW-UPS */}
+        <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
+          <div className="px-4 py-3 border-b border-slate-800">
+            <h2 className="text-sm font-semibold text-slate-300">Today's Follow-ups</h2>
+          </div>
+          {report.today_followup_calls.length === 0 ? (
+            <p className="text-slate-500 text-sm text-center py-6">No follow-ups today</p>
+          ) : (
+            <div className="divide-y divide-slate-800">
+              {report.today_followup_calls.map((call) => (
+                <div key={call.id} className="px-4 py-3">
+                  <p className="text-slate-100 text-sm font-medium">{call.name}</p>
+                  <p className="text-slate-500 text-xs">{call.phone}</p>
+                  <p className="text-blue-400 text-xs mt-0.5">{call.employee_name}</p>
+                </div>
+              ))}
             </div>
-          ))
-        )}
+          )}
+        </div>
 
-      </div>
-
-      {/* OVERDUE */}
-      <div className="bg-white/10 p-5 rounded-xl border border-red-400/30">
-
-        <h3 className="text-red-400 mb-4">
-          Overdue Followups
-        </h3>
-
-        {report.overdue_calls.length === 0 ? (
-          <p className="text-gray-400">
-            No overdue followups
-          </p>
-        ) : (
-          report.overdue_calls.map((call) => (
-            <div
-              key={call.id}
-              className="border-b border-gray-700 py-3"
-            >
-              <p className="text-white">
-                {call.name}
-              </p>
-
-              <p className="text-sm text-red-400">
-                Follow-up: {call.follow_up}
-              </p>
-
-              <p className="text-sm text-cyan-300">
-                Employee: {call.employee_name}
-              </p>
+        {/* OVERDUE */}
+        <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
+          <div className="px-4 py-3 border-b border-slate-800">
+            <h2 className="text-sm font-semibold text-red-400">Overdue Follow-ups</h2>
+          </div>
+          {report.overdue_calls.length === 0 ? (
+            <p className="text-slate-500 text-sm text-center py-6">No overdue follow-ups</p>
+          ) : (
+            <div className="divide-y divide-slate-800">
+              {report.overdue_calls.map((call) => (
+                <div key={call.id} className="px-4 py-3">
+                  <p className="text-slate-100 text-sm font-medium">{call.name}</p>
+                  <p className="text-red-400 text-xs">Follow-up: {call.follow_up}</p>
+                  <p className="text-blue-400 text-xs mt-0.5">{call.employee_name}</p>
+                </div>
+              ))}
             </div>
-          ))
-        )}
-
+          )}
+        </div>
       </div>
     </div>
   );

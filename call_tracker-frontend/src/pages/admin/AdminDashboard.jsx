@@ -1,178 +1,120 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  FaUsers,
-  FaPhoneAlt,
-  FaCheckCircle,
-  FaChartLine,
-  FaCheckDouble,
-} from "react-icons/fa";
+import { FaUsers, FaPhoneAlt, FaCheckCircle, FaChartLine, FaCheckDouble, FaRedoAlt } from "react-icons/fa";
 import api from "../../api/axios";
+
+const STATUS_COLOR = {
+  Interested:     "bg-blue-500/10 text-blue-400",
+  Converted:      "bg-green-500/10 text-green-400",
+  Closed:         "bg-slate-500/10 text-slate-400",
+  "Follow Up":    "bg-yellow-500/10 text-yellow-400",
+  "Not Interested": "bg-red-500/10 text-red-400",
+  "Did Not Pick": "bg-orange-500/10 text-orange-400",
+};
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
-
   const [employees, setEmployees] = useState([]);
   const [calls, setCalls] = useState([]);
 
   useEffect(() => {
-    const loadData = async () => {
+    (async () => {
       try {
-        const [empRes, callRes] = await Promise.all([
-          api.get("admin/employees/"),
-          api.get("admin/calls/"),
-        ]);
-
+        const [empRes, callRes] = await Promise.all([api.get("admin/employees/"), api.get("admin/calls/")]);
         setEmployees(empRes.data);
         setCalls(callRes.data);
-      } catch (error) {
-        console.log(error.response?.data || error);
-      }
-    };
-
-    loadData();
+      } catch (e) { console.log(e.response?.data); }
+    })();
   }, []);
 
+  const stats = [
+    { label: "Employees",   value: employees.length,                                           icon: <FaUsers />,       route: "/admin/employees", color: "text-blue-400",   bg: "bg-blue-500/10" },
+    { label: "Total Calls", value: calls.length,                                               icon: <FaPhoneAlt />,    route: "/admin/calls",     color: "text-slate-300",  bg: "bg-slate-500/10" },
+    { label: "Leads",       value: calls.filter(c => c.status === "Interested").length,        icon: <FaChartLine />,   route: "/admin/calls",     color: "text-yellow-400", bg: "bg-yellow-500/10" },
+    { label: "Conversions", value: calls.filter(c => c.status === "Converted").length,         icon: <FaCheckCircle />, route: "/admin/calls",     color: "text-green-400",  bg: "bg-green-500/10" },
+    { label: "Follow Ups",  value: calls.filter(c => c.status === "Follow Up").length,         icon: <FaRedoAlt />,     route: "/admin/calls",     color: "text-orange-400", bg: "bg-orange-500/10" },
+    { label: "Closed Deals",value: calls.filter(c => c.status === "Closed").length,            icon: <FaCheckDouble />, route: "/admin/calls",     color: "text-slate-400",  bg: "bg-slate-500/10" },
+  ];
+
   return (
-    <div className="p-4">
-      <h2 className="text-xl text-cyan-300 mb-6">Admin Dashboard</h2>
-
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 lg:grid-cols-5">
-        <div
-          onClick={() => navigate("/admin/employees")}
-          className="cursor-pointer bg-white/10 p-4 rounded-xl border border-cyan-400/30 hover:shadow-[0_0_20px_#00f0ff] transition"
-        >
-          <FaUsers className="text-cyan-300 mb-2" />
-          <p className="text-gray-400 text-sm">Employees</p>
-          <h3 className="text-xl text-cyan-300">{employees.length}</h3>
-        </div>
-
-        <div
-          onClick={() => navigate("/admin/calls")}
-          className="cursor-pointer bg-white/10 p-4 rounded-xl border border-cyan-400/30 hover:shadow-[0_0_20px_#00f0ff] transition"
-        >
-          <FaPhoneAlt className="text-cyan-300 mb-2" />
-          <p className="text-gray-400 text-sm">Calls</p>
-          <h3 className="text-xl text-cyan-300">{calls.length}</h3>
-        </div>
-
-        <div className="bg-white/10 p-4 rounded-xl border border-cyan-400/30 hover:shadow-[0_0_20px_#00f0ff] transition">
-          <FaChartLine className="text-cyan-300 mb-2" />
-          <p className="text-gray-400 text-sm">Leads</p>
-          <h3 className="text-xl text-cyan-300">
-            {calls.filter((c) => c.status === "Interested").length}
-          </h3>
-        </div>
-
-        <div className="bg-white/10 p-4 rounded-xl border border-cyan-400/30 hover:shadow-[0_0_20px_#00f0ff] transition">
-          <FaCheckCircle className="text-cyan-300 mb-2" />
-          <p className="text-gray-400 text-sm">Conversions</p>
-          <h3 className="text-xl text-cyan-300">
-            {calls.filter((c) => c.status === "Converted").length}
-          </h3>
-        </div>
-
-        <div className="bg-white/10 p-4 rounded-xl border border-cyan-400/30 hover:shadow-[0_0_20px_#00f0ff] transition">
-          <FaPhoneAlt className="text-cyan-300 mb-2" />
-          <p className="text-gray-400 text-sm">Follow Ups</p>
-          <h3 className="text-xl text-cyan-300">
-            {calls.filter((c) => c.status === "Follow Up").length}
-          </h3>
-        </div>
-
-        <div className="bg-white/10 p-4 rounded-xl border border-cyan-400/30 hover:shadow-[0_0_20px_#00f0ff] transition">
-          <FaCheckDouble className="text-cyan-300 mb-2" />
-          <p className="text-gray-400 text-sm">Closed Deals</p>
-          <h3 className="text-xl text-cyan-300">
-            {calls.filter((c) => c.status === "Closed").length}
-          </h3>
-        </div>
+    <div>
+      <div className="mb-6">
+        <h1 className="text-xl font-semibold text-white">Dashboard</h1>
+        <p className="text-sm text-slate-400 mt-0.5">Overview of your CRM activity</p>
       </div>
 
-      <div className="mb-8 mt-8">
-        <h3 className="text-cyan-300 mb-3">Employees</h3>
+      {/* STAT CARDS */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+        {stats.map((s) => (
+          <div
+            key={s.label}
+            onClick={() => navigate(s.route)}
+            className="cursor-pointer bg-slate-900 border border-slate-800 rounded-xl p-4 hover:border-slate-600 transition-colors"
+          >
+            <div className={`w-8 h-8 rounded-lg ${s.bg} flex items-center justify-center ${s.color} text-sm mb-3`}>
+              {s.icon}
+            </div>
+            <p className="text-slate-400 text-xs">{s.label}</p>
+            <p className={`text-2xl font-bold mt-0.5 ${s.color}`}>{s.value}</p>
+          </div>
+        ))}
+      </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3">
+      {/* EMPLOYEES PREVIEW */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-sm font-semibold text-slate-300">Recent Employees</h2>
+          <button onClick={() => navigate("/admin/employees")} className="cursor-pointer text-xs text-blue-400 hover:text-blue-300">View all →</button>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
           {employees.length === 0 ? (
-            <p className="text-gray-400 col-span-full text-center">
-              No employees
-            </p>
+            <p className="text-slate-500 text-sm col-span-full">No employees yet.</p>
           ) : (
             employees.slice(0, 6).map((emp) => (
-              <div
-                key={emp.id}
-                className="bg-white/10 p-3 rounded-lg border border-cyan-400/30"
-              >
-                <p className="text-cyan-300 text-sm font-semibold truncate">
-                  {emp.employee_name}
-                </p>
-                <p className="text-gray-400 text-xs truncate">
-                  {emp.email}
-                </p>
-                <p className="text-green-400 text-xs">
-                  ₹ {emp.salary || 0}
-                </p>
+              <div key={emp.id} className="bg-slate-900 border border-slate-800 rounded-xl p-3 hover:border-slate-600 transition-colors">
+                <div className="w-8 h-8 rounded-full bg-blue-600/20 text-blue-400 flex items-center justify-center font-semibold text-sm mb-2">
+                  {emp.employee_name?.charAt(0)?.toUpperCase()}
+                </div>
+                <p className="text-slate-200 text-sm font-medium truncate">{emp.employee_name}</p>
+                <p className="text-slate-500 text-xs truncate">{emp.email}</p>
               </div>
             ))
           )}
         </div>
       </div>
 
-      <div className="bg-white/10 p-4 rounded-xl border border-cyan-400/30 overflow-x-auto">
+      {/* RECENT CALLS */}
+      <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-slate-800">
+          <h2 className="text-sm font-semibold text-slate-300">Recent Calls</h2>
+          <button onClick={() => navigate("/admin/calls")} className="cursor-pointer text-xs text-blue-400 hover:text-blue-300">View all →</button>
+        </div>
         {calls.length === 0 ? (
-          <p className="text-gray-400 text-center">No calls</p>
+          <p className="text-slate-500 text-sm text-center py-8">No calls recorded yet.</p>
         ) : (
-          <table className="w-full text-sm text-white table-fixed">
-
-            <thead className="text-cyan-300 border-b border-cyan-400/30">
-              <tr className="text-left">
-
-                <th className="py-3 px-4 w-[25%]">
-                  Client
-                </th>
-
-                <th className="py-3 px-4 w-[25%]">
-                  Employee
-                </th>
-
-                <th className="py-3 px-4 w-[25%] text-center">
-                  Status
-                </th>
-
-                <th className="py-3 px-4 w-[25%] text-center">
-                  Follow Up
-                </th>
-
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-left text-xs text-slate-500 uppercase tracking-wider bg-slate-800/50">
+                <th className="px-4 py-2.5">Client</th>
+                <th className="px-4 py-2.5">Employee</th>
+                <th className="px-4 py-2.5">Status</th>
+                <th className="px-4 py-2.5">Follow Up</th>
               </tr>
             </thead>
-
             <tbody>
-              {calls.slice(0, 5).map((call) => (
-                <tr
-                  key={call.id}
-                  className="border-b border-gray-700 hover:bg-white/5 transition"
-                >
-
-                  <td className="py-3 px-4 truncate">
-                    {call.name}
+              {calls.slice(0, 8).map((call) => (
+                <tr key={call.id} className="border-t border-slate-800 hover:bg-slate-800/40 transition-colors">
+                  <td className="px-4 py-3 text-slate-100">{call.name}</td>
+                  <td className="px-4 py-3 text-slate-400">{call.employee_name || "—"}</td>
+                  <td className="px-4 py-3">
+                    <span className={`px-2 py-0.5 text-xs rounded-md ${STATUS_COLOR[call.status] || "bg-slate-500/10 text-slate-400"}`}>
+                      {call.status}
+                    </span>
                   </td>
-
-                  <td className="py-3 px-4 truncate text-cyan-200">
-                    {call.employee_name || "-"}
-                  </td>
-
-                  <td className="px-4 text-center">
-                    {call.status}
-                  </td>
-
-                  <td className="px-4 text-center">
-                    {call.follow_up || "-"}
-                  </td>
-
+                  <td className="px-4 py-3 text-slate-400">{call.follow_up || "—"}</td>
                 </tr>
               ))}
             </tbody>
-
           </table>
         )}
       </div>

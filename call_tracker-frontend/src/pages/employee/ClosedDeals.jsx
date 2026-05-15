@@ -1,134 +1,80 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { FaArrowLeft, FaTrash } from "react-icons/fa";
+import { FaTrash } from "react-icons/fa";
 import api from "../../api/axios";
 
 export default function ClosedDeals() {
-  const navigate = useNavigate();
-
   const [calls, setCalls] = useState([]);
   const [search, setSearch] = useState("");
 
-  // LOAD
-  useEffect(() => {
-    fetchCalls();
-  }, []);
+  useEffect(() => { fetchCalls(); }, []);
 
   const fetchCalls = async () => {
-    try {
-      const response = await api.get("calls/my-calls/");
-      setCalls(response.data);
-    } catch (error) {
-      console.log(error.response?.data);
-    }
+    try { const res = await api.get("calls/my-calls/"); setCalls(res.data); }
+    catch (e) { console.log(e.response?.data); }
   };
 
-  // DELETE
   const handleDelete = async (id) => {
-    try {
-      await api.delete(`calls/${id}/`);
-      await fetchCalls();
-    } catch (error) {
-      console.log(error.response?.data);
-    }
+    if (!window.confirm("Delete this record?")) return;
+    try { await api.delete(`calls/${id}/`); await fetchCalls(); }
+    catch (e) { console.log(e.response?.data); }
   };
 
-  // FILTER CLOSED
   const closedDeals = calls.filter((c) => c.status === "Closed");
-
-  // SEARCH
-  const filtered = closedDeals.filter(
-    (call) =>
-      call.name.toLowerCase().includes(search.toLowerCase()) ||
-      call.phone.includes(search)
-  );
+  const filtered = closedDeals.filter((c) => c.name.toLowerCase().includes(search.toLowerCase()) || c.phone.includes(search));
 
   return (
     <div>
-      {/* BACK */}
-      <button
-        onClick={() => navigate("/employee/dashboard")}
-        className="cursor-pointer mb-4 flex items-center gap-2 px-4 py-2 border border-cyan-400 text-cyan-300 rounded-md hover:bg-cyan-400 hover:text-black"
-      >
-        <FaArrowLeft /> Back
-      </button>
+      <div className="mb-6">
+        <h1 className="text-xl font-semibold text-white">Closed Deals</h1>
+        <p className="text-sm text-slate-400 mt-0.5">{closedDeals.length} deals closed</p>
+      </div>
 
-      <h2 className="text-xl text-cyan-300 mb-4">
-        Closed Deals
-      </h2>
+      <div className="mb-4">
+        <input
+          type="text"
+          placeholder="Search closed deals..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-full px-3 py-2.5 bg-slate-950 border border-slate-700 text-slate-100 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/50 placeholder-slate-600 transition-colors"
+        />
+      </div>
 
-      {/* SEARCH */}
-      <input
-        type="text"
-        placeholder="Search closed deals..."
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        className="mb-4 w-full px-4 py-2 bg-transparent border border-cyan-400 rounded-md text-white"
-      />
-
-      {/* TABLE */}
-      <div className="bg-white/10 p-4 rounded-xl border border-cyan-400/30 overflow-x-auto">
+      <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
         {filtered.length === 0 ? (
-          <p className="text-gray-400 text-center py-6">
-            No closed deals
-          </p>
+          <p className="text-slate-500 text-sm text-center py-8">No closed deals</p>
         ) : (
-          <table className="w-full text-white text-sm table-fixed border-collapse">
-            {/* HEADER */}
-            <thead className="border-b border-cyan-400/30 text-cyan-300">
-              <tr className="text-left">
-                <th className="py-3 px-4 w-[18%]">Client</th>
-                <th className="py-3 px-4 w-[15%]">Phone</th>
-                <th className="py-3 px-4 w-[15%]">Project</th>
-                <th className="py-3 px-4 w-[12%]">Status</th>
-                <th className="py-3 px-4 w-[20%]">Notes</th>
-                <th className="py-3 px-4 w-[8%] text-center">Actions</th>
-              </tr>
-            </thead>
-
-            {/* BODY */}
-            <tbody>
-              {filtered.map((call) => (
-                <tr
-                  key={call.id}
-                  className="border-b border-gray-700 hover:bg-white/5 transition"
-                >
-                  <td className="px-4 py-3 align-middle truncate">
-                    {call.name}
-                  </td>
-
-                  <td className="px-4 align-middle">
-                    {call.phone}
-                  </td>
-
-                  <td className="px-4 align-middle truncate">
-                    {call.project || "-"}
-                  </td>
-
-                  <td className="px-4 align-middle">
-                    <span className="px-2 py-1 rounded text-xs bg-red-500/20 text-red-400">
-                      Closed
-                    </span>
-                  </td>
-
-                  <td className="px-4 align-middle truncate">
-                    {call.notes || "-"}
-                  </td>
-
-                  <td className="px-4 align-middle text-center">
-                    <div className="flex justify-center items-center gap-3">
-                      <button
-                        onClick={() => handleDelete(call.id)}
-                        className="cursor-pointer text-red-400 hover:text-white hover:scale-110 transition"
-                      >
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left text-xs text-slate-500 uppercase tracking-wider bg-slate-800/50">
+                  <th className="px-4 py-2.5">Client</th>
+                  <th className="px-4 py-2.5">Phone</th>
+                  <th className="px-4 py-2.5">Project</th>
+                  <th className="px-4 py-2.5">Status</th>
+                  <th className="px-4 py-2.5">Notes</th>
+                  <th className="px-4 py-2.5 text-center">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((call) => (
+                  <tr key={call.id} className="border-t border-slate-800 hover:bg-slate-800/40 transition-colors">
+                    <td className="px-4 py-3 text-slate-100">{call.name}</td>
+                    <td className="px-4 py-3 text-slate-400">{call.phone}</td>
+                    <td className="px-4 py-3 text-slate-400">{call.project || "—"}</td>
+                    <td className="px-4 py-3">
+                      <span className="px-2 py-0.5 text-xs rounded-md bg-slate-500/10 text-slate-400">Closed</span>
+                    </td>
+                    <td className="px-4 py-3 text-slate-400 truncate max-w-[180px]">{call.notes || "—"}</td>
+                    <td className="px-4 py-3 text-center">
+                      <button onClick={() => handleDelete(call.id)} className="cursor-pointer text-slate-400 hover:text-red-400 transition-colors p-1">
                         <FaTrash />
                       </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
     </div>

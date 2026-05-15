@@ -1,114 +1,88 @@
 import { useState } from "react";
-import bg from "../assets/images/tech-bg.jpg";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { FaSignOutAlt, FaUser } from "react-icons/fa";
 
 export default function EmployeeLayout({ children }) {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
-
   const [showProfile, setShowProfile] = useState(false);
 
   const userName = user?.employee_name || user?.username || "Employee";
 
-  const handleLogout = () => {
-    logout();
-    navigate("/");
-  };
+  const handleLogout = () => { logout(); navigate("/"); };
 
   return (
-    <div
-      className="min-h-screen bg-cover bg-center relative text-white"
-      style={{ backgroundImage: `url(${bg})` }}
-    >
-      <div className="absolute inset-0 bg-[#000814]/80"></div>
+    <div className="min-h-screen bg-slate-950 text-slate-100">
 
-      <div className="relative z-10">
-        <div className="h-[70px] flex items-center justify-between px-6 border-b border-cyan-400/30 backdrop-blur-md bg-black/30">
-          <div className="flex flex-col">
-            <h1 className="text-lg text-cyan-300 font-semibold tracking-wide">
-              Employee Dashboard
-            </h1>
-
-            <p className="text-sm text-green-400 mt-1 font-medium">
-              Welcome {userName} 👋
-            </p>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <div
-              className="cursor-pointer flex items-center gap-2"
-              onClick={() => setShowProfile(true)}
-            >
-              <div className="w-9 h-9 rounded-full bg-cyan-400/20 border border-cyan-400 flex items-center justify-center text-cyan-300 font-semibold">
-                {userName?.charAt(0)?.toUpperCase()}
-              </div>
-
-              <span className="text-sm text-cyan-200">{userName}</span>
-            </div>
-
-            <button
-              onClick={handleLogout}
-              className="cursor-pointer px-3 py-1 border border-cyan-400 rounded-md text-cyan-300 hover:bg-cyan-400 hover:text-black transition shadow-[0_0_10px_#00f0ff]"
-            >
-              Logout
-            </button>
-          </div>
+      {/* HEADER */}
+      <header className="h-[60px] flex items-center justify-between px-5 bg-slate-900 border-b border-slate-800 sticky top-0 z-40">
+        <div>
+          <span className="font-semibold text-white text-sm">Call<span className="text-blue-500">Tracker</span> CRM</span>
+          <p className="text-xs text-slate-500 leading-none mt-0.5">Employee Portal</p>
         </div>
 
-        <div className="p-6">{children}</div>
-      </div>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setShowProfile(true)}
+            className="cursor-pointer flex items-center gap-2 px-3 py-1.5 text-sm border border-slate-700 text-slate-300 rounded-lg hover:bg-slate-800 transition-colors"
+          >
+            <div className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-bold">
+              {userName.charAt(0).toUpperCase()}
+            </div>
+            <span className="hidden sm:inline">{userName}</span>
+          </button>
+          <button
+            onClick={handleLogout}
+            className="cursor-pointer flex items-center gap-2 px-3 py-1.5 text-sm border border-slate-700 text-slate-400 rounded-lg hover:bg-slate-800 hover:text-white transition-colors"
+          >
+            <FaSignOutAlt className="text-xs" />
+            <span className="hidden sm:inline">Logout</span>
+          </button>
+        </div>
+      </header>
 
+      <div className="p-6">{children}</div>
+
+      {/* PROFILE MODAL */}
       {showProfile && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
-          <div className="bg-[#020617] border border-cyan-400 rounded-xl p-6 w-[420px] shadow-[0_0_25px_#00f0ff]">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl text-cyan-300 font-semibold">
-                Employee Profile
-              </h2>
-
-              <button
-                onClick={() => setShowProfile(false)}
-                className="cursor-pointer text-cyan-400 hover:text-white text-xl"
-              >
-                ✕
-              </button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="bg-slate-900 border border-slate-700 rounded-xl shadow-xl w-[400px] p-6">
+            <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold">
+                  {userName.charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <h2 className="text-base font-semibold text-white">{userName}</h2>
+                  <p className="text-xs text-slate-400">Employee Profile</p>
+                </div>
+              </div>
+              <button onClick={() => setShowProfile(false)} className="cursor-pointer text-slate-500 hover:text-white text-lg">✕</button>
             </div>
 
             {user ? (
-              <div className="space-y-3 text-sm text-cyan-100">
-                <p>
-                  <span className="text-cyan-400">Employee ID:</span>{" "}
-                  {user.employee_id || "-"}
-                </p>
-                <p>
-                  <span className="text-cyan-400">Name:</span>{" "}
-                  {user.employee_name || user.username || "-"}
-                </p>
-                <p>
-                  <span className="text-cyan-400">Department:</span>{" "}
-                  {user.department || "-"}
-                </p>
-                <p>
-                  <span className="text-cyan-400">Designation:</span>{" "}
-                  {user.designation || "-"}
-                </p>
-                <p>
-                  <span className="text-cyan-400">Phone:</span>{" "}
-                  {user.phone || "-"}
-                </p>
-                <p>
-                  <span className="text-cyan-400">Email:</span>{" "}
-                  {user.email || "-"}
-                </p>
+              <div className="space-y-3 text-sm">
+                {[
+                  ["Employee ID", user.employee_id],
+                  ["Department",  user.department],
+                  ["Designation", user.designation],
+                  ["Phone",       user.phone],
+                  ["Email",       user.email],
+                ].map(([label, value]) => (
+                  <div key={label} className="flex justify-between py-2 border-b border-slate-800">
+                    <span className="text-slate-400">{label}</span>
+                    <span className="text-slate-100">{value || "—"}</span>
+                  </div>
+                ))}
               </div>
             ) : (
-              <p className="text-cyan-200">Loading profile...</p>
+              <p className="text-slate-400 text-sm">Loading...</p>
             )}
 
             <button
               onClick={() => setShowProfile(false)}
-              className="cursor-pointer mt-6 w-full px-4 py-2 bg-cyan-400 text-black rounded-md font-semibold hover:opacity-90"
+              className="cursor-pointer mt-5 w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
             >
               Close
             </button>

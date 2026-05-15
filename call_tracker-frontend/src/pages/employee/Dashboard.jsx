@@ -1,16 +1,12 @@
 import { useState, useEffect } from "react";
-import {
-  FaPhoneAlt, FaUserFriends, FaCheckCircle, FaRedoAlt,
-  FaHandshake, FaChartLine, FaFolderOpen, FaBullseye,
-} from "react-icons/fa";
+import { FaPhoneAlt, FaUserFriends, FaCheckCircle, FaRedoAlt, FaHandshake, FaFolderOpen, FaBullseye } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import api from "../../api/axios";
 
 const FOLLOW_UP_STATUSES = ["Follow Up", "Interested"];
+const ALL_STATUSES = ["Interested", "Not Interested", "Follow Up", "Converted", "Did Not Pick"];
 
-const ALL_STATUSES = [
-  "Interested", "Not Interested", "Follow Up", "Converted", "Did Not Pick",
-];
+const INPUT = "w-full px-3 py-2.5 bg-slate-950 border border-slate-700 text-slate-100 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/50 placeholder-slate-600 transition-colors";
 
 export default function EmployeeDashboard() {
   const [saving, setSaving] = useState(false);
@@ -20,74 +16,35 @@ export default function EmployeeDashboard() {
   const [target, setTarget] = useState(null);
   const navigate = useNavigate();
 
-  const [form, setForm] = useState({
-    name: "",
-    phone: "",
-    project: "",
-    status: "",
-    notes: "",
-    followUp: "",
-  });
+  const [form, setForm] = useState({ name: "", phone: "", project: "", status: "", notes: "", followUp: "" });
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
+  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleSave = async () => {
     setSaving(true);
     try {
       await api.post("calls/", {
-        name: form.name,
-        phone: form.phone,
-        project: form.project,
-        status: form.status,
-        notes: form.notes,
+        name: form.name, phone: form.phone, project: form.project,
+        status: form.status, notes: form.notes,
         follow_up: FOLLOW_UP_STATUSES.includes(form.status) ? form.followUp || null : null,
       });
-      await fetchCalls();
-      await fetchTarget();
+      await fetchCalls(); await fetchTarget();
       setShowModal(false);
       setForm({ name: "", phone: "", project: "", status: "", notes: "", followUp: "" });
-    } catch (error) {
-      console.log(error.response?.data);
-    } finally {
-      setSaving(false);
-    }
+    } catch (e) { console.log(e.response?.data); }
+    finally { setSaving(false); }
   };
 
-  useEffect(() => {
-    fetchCalls();
-    fetchProjects();
-    fetchTarget();
-  }, []);
-
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        await api.get("accounts/me/");
-      } catch (error) {
-        console.log(error.response?.data);
-      }
-    };
-    fetchProfile();
-  }, []);
+  useEffect(() => { fetchCalls(); fetchProjects(); fetchTarget(); }, []);
 
   const fetchCalls = async () => {
-    try {
-      const response = await api.get("calls/my-calls/");
-      setCalls(response.data);
-    } catch (error) {
-      console.log(error.response?.data);
-    }
+    try { const res = await api.get("calls/my-calls/"); setCalls(res.data); }
+    catch (e) { console.log(e.response?.data); }
   };
 
   const fetchProjects = async () => {
-    try {
-      const res = await api.get("projects/");
-      setProjects(res.data);
-    } catch (err) {
-      console.log(err.response?.data);
-    }
+    try { const res = await api.get("projects/"); setProjects(res.data); }
+    catch (e) { console.log(e.response?.data); }
   };
 
   const fetchTarget = async () => {
@@ -95,201 +52,124 @@ export default function EmployeeDashboard() {
       const today = new Date().toISOString().slice(0, 10);
       const res = await api.get(`targets/my/?date=${today}`);
       setTarget(res.data);
-    } catch (err) {
-      console.log(err.response?.data);
-    }
+    } catch (e) { console.log(e.response?.data); }
   };
 
-  // Today's calls
   const todayStr = new Date().toISOString().slice(0, 10);
-  const todayCalls = calls.filter(
-    (c) => c.created_at && c.created_at.slice(0, 10) === todayStr
-  );
-
+  const todayCalls = calls.filter((c) => c.created_at && c.created_at.slice(0, 10) === todayStr);
   const targetCount = target?.target_count ?? null;
   const callsDone = target?.calls_done ?? todayCalls.length;
   const targetMet = targetCount !== null && callsDone >= targetCount;
-  const progressPct =
-    targetCount ? Math.min(100, Math.round((callsDone / targetCount) * 100)) : 0;
+  const progressPct = targetCount ? Math.min(100, Math.round((callsDone / targetCount) * 100)) : 0;
 
   const cards = [
-    { title: "Total Calls", value: calls.length, icon: <FaPhoneAlt />, route: "/employee/my-calls" },
-    { title: "Leads", value: calls.filter((c) => c.status === "Interested").length, icon: <FaUserFriends />, route: "/employee/leads" },
-    { title: "Conversions", value: calls.filter((c) => c.status === "Converted").length, icon: <FaCheckCircle />, route: "/employee/conversions" },
-    { title: "Follow Ups", value: calls.filter((c) => c.status === "Follow Up").length, icon: <FaRedoAlt />, route: "/employee/follow-ups" },
-    { title: "Closed Deals", value: calls.filter((c) => c.status === "Closed").length, icon: <FaHandshake />, route: "/employee/closed-deals" },
-    { title: "Projects", value: projects.length, icon: <FaFolderOpen />, route: "/employee/projects" },
+    { title: "Total Calls", value: calls.length, icon: <FaPhoneAlt />, route: "/employee/my-calls", color: "text-blue-400", bg: "bg-blue-500/10" },
+    { title: "Leads", value: calls.filter((c) => c.status === "Interested").length, icon: <FaUserFriends />, route: "/employee/leads", color: "text-yellow-400", bg: "bg-yellow-500/10" },
+    { title: "Conversions", value: calls.filter((c) => c.status === "Converted").length, icon: <FaCheckCircle />, route: "/employee/conversions", color: "text-green-400", bg: "bg-green-500/10" },
+    { title: "Follow Ups", value: calls.filter((c) => c.status === "Follow Up").length, icon: <FaRedoAlt />, route: "/employee/follow-ups", color: "text-orange-400", bg: "bg-orange-500/10" },
+    { title: "Closed Deals", value: calls.filter((c) => c.status === "Closed").length, icon: <FaHandshake />, route: "/employee/closed-deals", color: "text-slate-300", bg: "bg-slate-500/10" },
+    { title: "Projects", value: projects.length, icon: <FaFolderOpen />, route: "/employee/projects", color: "text-blue-400", bg: "bg-blue-500/10" },
   ];
 
   return (
     <div>
-      <div className="flex items-center gap-2 mb-6">
-        <FaChartLine className="text-cyan-400 text-xl drop-shadow-[0_0_5px_#00f0ff]" />
-        <h2 className="text-xl text-cyan-300 tracking-wide">Your Activity</h2>
+      <div className="mb-6">
+        <h1 className="text-xl font-semibold text-white">Dashboard</h1>
+        <p className="text-sm text-slate-400 mt-0.5">Your call activity overview</p>
       </div>
 
       {/* TARGET PROGRESS */}
       {targetCount !== null ? (
-        <div className="mb-6 bg-white/10 backdrop-blur-md rounded-xl border border-cyan-400/30 shadow-[0_0_10px_#00f0ff] p-5">
-          <div className="flex items-center justify-between mb-2">
+        <div className="mb-6 bg-slate-900 border border-slate-800 rounded-xl p-5">
+          <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <FaBullseye className="text-cyan-400" />
-              <span className="text-cyan-300 font-semibold">Today's Target</span>
+              <FaBullseye className="text-blue-400" />
+              <span className="text-sm font-semibold text-slate-200">Today's Target</span>
             </div>
             <span className={`text-sm font-bold ${targetMet ? "text-green-400" : "text-yellow-400"}`}>
-              {callsDone} / {targetCount} calls
-              {targetMet && " ✓ Target Met!"}
+              {callsDone} / {targetCount} calls{targetMet && " · Met"}
             </span>
           </div>
-          <div className="w-full bg-white/10 rounded-full h-3">
+          <div className="w-full bg-slate-800 rounded-full h-2.5">
             <div
-              className={`h-3 rounded-full transition-all duration-500 ${targetMet ? "bg-green-400 shadow-[0_0_8px_#4ade80]" : "bg-cyan-400 shadow-[0_0_8px_#00f0ff]"}`}
+              className={`h-2.5 rounded-full transition-all duration-500 ${targetMet ? "bg-green-500" : "bg-blue-500"}`}
               style={{ width: `${progressPct}%` }}
             />
           </div>
-          <p className="text-xs text-gray-400 mt-1">{progressPct}% complete</p>
+          <p className="text-xs text-slate-500 mt-1.5">{progressPct}% complete</p>
         </div>
       ) : (
-        <div className="mb-6 bg-white/5 rounded-xl border border-cyan-400/10 p-4">
-          <p className="text-xs text-gray-500 flex items-center gap-2">
-            <FaBullseye className="text-gray-600" />
-            No target set for today by admin.
+        <div className="mb-6 bg-slate-900 border border-slate-800 rounded-xl p-4">
+          <p className="text-xs text-slate-500 flex items-center gap-2">
+            <FaBullseye className="text-slate-600" />
+            No target assigned for today by admin.
           </p>
         </div>
       )}
 
       {/* DASHBOARD CARDS */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
-        {cards.map((card, index) => (
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+        {cards.map((card) => (
           <div
-            key={index}
-            onClick={() => card.route && navigate(card.route)}
-            className="h-[160px] flex flex-col justify-between bg-white/10 p-4 rounded-xl border border-cyan-400/30 shadow-[0_0_10px_#00f0ff] hover:shadow-[0_0_20px_#00f0ff] transition cursor-pointer hover:scale-105"
+            key={card.title}
+            onClick={() => navigate(card.route)}
+            className="cursor-pointer bg-slate-900 border border-slate-800 rounded-xl p-4 hover:border-slate-600 transition-colors"
           >
-            <div className="w-10 h-10 flex items-center justify-center rounded-full bg-cyan-400/20 text-cyan-300 text-lg">
+            <div className={`w-8 h-8 rounded-lg ${card.bg} flex items-center justify-center ${card.color} text-sm mb-3`}>
               {card.icon}
             </div>
-            <h3 className="text-sm text-gray-300">{card.title}</h3>
-            <p className="text-2xl text-cyan-300 font-semibold">{card.value}</p>
+            <p className="text-slate-400 text-xs">{card.title}</p>
+            <p className={`text-2xl font-bold mt-0.5 ${card.color}`}>{card.value}</p>
           </div>
         ))}
       </div>
 
-      {/* FLOATING BUTTON */}
+      {/* FAB */}
       <button
         onClick={() => setShowModal(true)}
-        className="cursor-pointer fixed bottom-6 right-6 px-6 py-3 rounded-full bg-cyan-400 text-black font-semibold shadow-[0_0_15px_#00f0ff] hover:scale-110 transition z-50"
+        className="cursor-pointer fixed bottom-6 right-6 px-5 py-3 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm shadow-lg transition-colors z-50"
       >
         + Add Call
       </button>
 
       {/* ADD CALL MODAL */}
       {showModal && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/80 z-50">
-          <div className="relative p-[2px] rounded-xl bg-gradient-to-r from-cyan-400 to-blue-500 shadow-[0_0_25px_#00f0ff]">
-            <div className="bg-[#020617] w-[500px] p-6 rounded-xl relative max-h-[90vh] overflow-y-auto">
-              <div className="absolute top-0 left-6 right-6 h-[2px] bg-cyan-400 shadow-[0_0_10px_#00f0ff]" />
-              <div className="absolute bottom-0 left-6 right-6 h-[2px] bg-cyan-400 shadow-[0_0_10px_#00f0ff]" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="bg-slate-900 border border-slate-700 rounded-xl shadow-xl w-[440px] max-h-[90vh] overflow-y-auto p-6">
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="text-base font-semibold text-white">Add Call</h2>
+              <button onClick={() => setShowModal(false)} className="cursor-pointer text-slate-500 hover:text-white text-lg transition-colors">✕</button>
+            </div>
 
-              <button
-                onClick={() => setShowModal(false)}
-                className="cursor-pointer absolute top-3 right-3 text-cyan-400 hover:text-white text-xl"
-              >
-                ✕
+            <div className="space-y-3">
+              <input type="text" name="name" placeholder="Client Name" value={form.name} onChange={handleChange} className={INPUT} />
+              <input type="text" name="phone" placeholder="Phone Number" value={form.phone} onChange={handleChange} className={INPUT} />
+
+              <select name="project" value={form.project} onChange={handleChange} className={INPUT}>
+                <option value="">Select Project</option>
+                {projects.map((p) => <option key={p.id} value={p.name}>{p.name}</option>)}
+              </select>
+
+              <select name="status" value={form.status} onChange={handleChange} className={INPUT}>
+                <option value="">Select Status</option>
+                {ALL_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+              </select>
+
+              {FOLLOW_UP_STATUSES.includes(form.status) && (
+                <div>
+                  <label className="block text-xs text-slate-400 mb-1.5">Follow-up Date</label>
+                  <input type="date" name="followUp" value={form.followUp} onChange={handleChange} className={INPUT} />
+                </div>
+              )}
+
+              <textarea name="notes" value={form.notes} onChange={handleChange} placeholder="Notes" rows={2} className={INPUT} />
+            </div>
+
+            <div className="flex gap-3 mt-5">
+              <button onClick={() => setShowModal(false)} className="cursor-pointer flex-1 py-2.5 border border-slate-700 text-slate-300 rounded-lg text-sm hover:bg-slate-800 transition-colors">Cancel</button>
+              <button onClick={handleSave} disabled={saving} className="cursor-pointer flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
+                {saving ? <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Saving...</> : "Save"}
               </button>
-
-              <h2 className="text-2xl text-center text-cyan-300 mb-5 tracking-widest">
-                ADD CALL
-              </h2>
-
-              <div className="space-y-3">
-                <input
-                  type="text"
-                  name="name"
-                  placeholder="Client Name"
-                  value={form.name}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2 bg-transparent border border-cyan-400 rounded-md text-white"
-                />
-
-                <input
-                  type="text"
-                  name="phone"
-                  placeholder="Phone Number"
-                  value={form.phone}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2 bg-transparent border border-cyan-400 rounded-md text-white"
-                />
-
-                <select
-                  name="project"
-                  value={form.project}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2 bg-[#020617] border border-cyan-400 rounded-md text-white"
-                >
-                  <option value="" className="bg-black">Select Project</option>
-                  {projects.map((p) => (
-                    <option key={p.id} value={p.name} className="bg-black">{p.name}</option>
-                  ))}
-                </select>
-
-                <select
-                  name="status"
-                  value={form.status}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2 bg-[#020617] border border-cyan-400 rounded-md text-white"
-                >
-                  <option value="" className="bg-black">Select Status</option>
-                  {ALL_STATUSES.map((s) => (
-                    <option key={s} value={s} className="bg-black">{s}</option>
-                  ))}
-                </select>
-
-                {FOLLOW_UP_STATUSES.includes(form.status) && (
-                  <div>
-                    <label className="block text-xs text-cyan-400 mb-1">Follow-up Date</label>
-                    <input
-                      type="date"
-                      name="followUp"
-                      value={form.followUp}
-                      onChange={handleChange}
-                      className="w-full px-4 py-2 bg-transparent border border-cyan-400 rounded-md text-white"
-                    />
-                  </div>
-                )}
-
-                <textarea
-                  name="notes"
-                  value={form.notes}
-                  onChange={handleChange}
-                  placeholder="Notes"
-                  rows="2"
-                  className="w-full px-4 py-2 bg-transparent border border-cyan-400 rounded-md text-white"
-                />
-              </div>
-
-              <div className="flex justify-end gap-3 mt-5">
-                <button
-                  onClick={() => setShowModal(false)}
-                  className="cursor-pointer px-4 py-2 border border-gray-500 text-gray-300 rounded-md hover:bg-gray-700"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleSave}
-                  disabled={saving}
-                  className="cursor-pointer px-4 py-2 bg-cyan-400 text-black font-semibold rounded-md shadow-[0_0_10px_#00f0ff] flex items-center justify-center gap-2 disabled:opacity-50"
-                >
-                  {saving ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />
-                      Saving...
-                    </>
-                  ) : (
-                    "Save"
-                  )}
-                </button>
-              </div>
             </div>
           </div>
         </div>

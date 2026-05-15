@@ -1,7 +1,6 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "https://calltracker.appscoresolutions.com/api/",
 });
 
 api.interceptors.request.use((config) => {
@@ -33,7 +32,6 @@ api.interceptors.response.use(
       error.response?.status === 401 &&
       !originalRequest._retry &&
       !originalRequest.url.includes("accounts/login/") &&
-      !originalRequest.url.includes("accounts/register/") &&
       !originalRequest.url.includes("accounts/token/refresh/")
     ) {
       originalRequest._retry = true;
