@@ -8,6 +8,7 @@ import {
   FaSignOutAlt,
   FaBars,
   FaUserPlus,
+  FaBullseye,
 } from "react-icons/fa";
 import { useAuth } from "../context/AuthContext";
 
@@ -115,6 +116,14 @@ export default function AdminLayout() {
           >
             <FaChartLine />
             {!collapsed && <span>Reports</span>}
+          </button>
+
+          <button
+            onClick={() => navigate("/admin/targets")}
+            className={menuItemClass("/admin/targets")}
+          >
+            <FaBullseye />
+            {!collapsed && <span>Targets</span>}
           </button>
 
           <button

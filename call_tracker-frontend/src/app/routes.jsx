@@ -18,6 +18,7 @@ import Employees from "../pages/admin/Employees";
 import Calls from "../pages/admin/Calls";
 import Reports from "../pages/admin/Reports";
 import AdminRegister from "../pages/admin/AdminRegister";
+import Targets from "../pages/admin/Targets";
 
 export default function AppRoutes() {
   return (
@@ -32,6 +33,7 @@ export default function AppRoutes() {
         <Route path="employees" element={<Employees />} />
         <Route path="calls" element={<Calls />} />
         <Route path="reports" element={<Reports />} />
+        <Route path="targets" element={<Targets />} />
         <Route path="register" element={<AdminRegister />} />
       </Route>
 

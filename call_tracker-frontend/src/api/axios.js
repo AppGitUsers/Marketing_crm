@@ -7,7 +7,6 @@ const api = axios.create({
 api.interceptors.request.use((config) => {
   const publicPaths = [
     "accounts/login/",
-    "accounts/register/",
     "accounts/token/refresh/",
   ];
 

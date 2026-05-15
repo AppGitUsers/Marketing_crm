@@ -10,6 +10,7 @@ class Call(models.Model):
         ('Follow Up', 'Follow Up'),
         ('Converted', 'Converted'),
         ('Closed', 'Closed'),
+        ('Did Not Pick', 'Did Not Pick'),
     )
 
     employee = models.ForeignKey(
