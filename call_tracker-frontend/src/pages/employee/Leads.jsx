@@ -4,6 +4,15 @@ import api from "../../api/axios";
 
 const INPUT = "w-full px-3 py-2.5 bg-slate-950 border border-slate-700 text-slate-100 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/50 placeholder-slate-600 transition-colors";
 
+const toDateTimeLocal = (val) => {
+  if (!val) return "";
+  if (val.length === 10) return val + "T00:00";
+  return val.slice(0, 16);
+};
+
+const fmtDate = (val) => (val ? val.slice(0, 10) : "—");
+const fmtTime = (val) => (val && val.length > 10 ? val.slice(11, 16) : "—");
+
 export default function Leads() {
   const [calls, setCalls] = useState([]);
   const [editData, setEditData] = useState(null);
@@ -88,6 +97,8 @@ export default function Leads() {
                   <th className="px-4 py-2.5">Phone</th>
                   <th className="px-4 py-2.5">Project</th>
                   <th className="px-4 py-2.5">Status</th>
+                  <th className="px-4 py-2.5">Follow-up Date</th>
+                  <th className="px-4 py-2.5">Time</th>
                   <th className="px-4 py-2.5 text-center">Actions</th>
                 </tr>
               </thead>
@@ -100,6 +111,8 @@ export default function Leads() {
                     <td className="px-4 py-3">
                       <span className="px-2 py-0.5 text-xs rounded-md bg-blue-500/10 text-blue-400">Interested</span>
                     </td>
+                    <td className="px-4 py-3 text-slate-400 text-xs whitespace-nowrap">{fmtDate(call.follow_up)}</td>
+                    <td className="px-4 py-3 text-slate-400 text-xs whitespace-nowrap">{fmtTime(call.follow_up)}</td>
                     <td className="px-4 py-3 text-center">
                       <div className="flex justify-center items-center gap-2">
                         <button onClick={() => setEditData(call)} className="cursor-pointer text-slate-400 hover:text-blue-400 transition-colors p-1"><FaEdit /></button>
@@ -137,8 +150,8 @@ export default function Leads() {
               </select>
               <textarea name="notes" value={form.notes} onChange={handleChange} placeholder="Notes" rows={2} className={INPUT} />
               <div>
-                <label className="block text-xs text-slate-400 mb-1.5">Follow-up Date (optional)</label>
-                <input type="date" name="follow_up" value={form.follow_up} onChange={handleChange} className={INPUT} />
+                <label className="block text-xs text-slate-400 mb-1.5">Follow-up Date & Time (optional)</label>
+                <input type="datetime-local" name="follow_up" value={form.follow_up} onChange={handleChange} className={INPUT} />
               </div>
             </div>
             <div className="flex gap-3 mt-5">
@@ -174,8 +187,13 @@ export default function Leads() {
               </select>
               <textarea value={editData.notes || ""} onChange={(e) => setEditData({ ...editData, notes: e.target.value })} placeholder="Notes" rows={2} className={INPUT} />
               <div>
-                <label className="block text-xs text-slate-400 mb-1.5">Follow-up Date</label>
-                <input type="date" value={editData.follow_up || ""} onChange={(e) => setEditData({ ...editData, follow_up: e.target.value })} className={INPUT} />
+                <label className="block text-xs text-slate-400 mb-1.5">Follow-up Date & Time</label>
+                <input
+                  type="datetime-local"
+                  value={toDateTimeLocal(editData.follow_up)}
+                  onChange={(e) => setEditData({ ...editData, follow_up: e.target.value })}
+                  className={INPUT}
+                />
               </div>
             </div>
             <div className="flex gap-3 mt-5">

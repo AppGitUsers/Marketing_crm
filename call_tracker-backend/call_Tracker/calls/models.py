@@ -41,7 +41,7 @@ class Call(models.Model):
         null=True
     )
 
-    follow_up = models.DateField(
+    follow_up = models.DateTimeField(
         blank=True,
         null=True
     )

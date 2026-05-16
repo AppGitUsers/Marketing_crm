@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { FaPhoneAlt, FaUserFriends, FaCheckCircle, FaRedoAlt, FaHandshake, FaFolderOpen, FaBullseye, FaCalendarCheck } from "react-icons/fa";
+import { FaPhoneAlt, FaUserFriends, FaCheckCircle, FaRedoAlt, FaHandshake, FaFolderOpen, FaBullseye, FaCalendarCheck, FaEdit } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import api from "../../api/axios";
 
@@ -8,12 +8,23 @@ const ALL_STATUSES = ["Interested", "Not Interested", "Follow Up", "Converted", 
 
 const INPUT = "w-full px-3 py-2.5 bg-slate-950 border border-slate-700 text-slate-100 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/50 placeholder-slate-600 transition-colors";
 
+const toDateTimeLocal = (val) => {
+  if (!val) return "";
+  if (val.length === 10) return val + "T00:00";
+  return val.slice(0, 16);
+};
+
+const fmtTime = (val) => (val && val.length > 10 ? val.slice(11, 16) : "—");
+
 export default function EmployeeDashboard() {
   const [saving, setSaving] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [calls, setCalls] = useState([]);
   const [projects, setProjects] = useState([]);
   const [target, setTarget] = useState(null);
+  const [doneTarget, setDoneTarget] = useState(null);
+  const [rescheduleTarget, setRescheduleTarget] = useState(null); // { id, date, name }
+  const [editFollowUp, setEditFollowUp] = useState(null); // call object being edited
   const navigate = useNavigate();
 
   const [form, setForm] = useState({ name: "", phone: "", project: "", status: "", notes: "", followUp: "" });
@@ -57,25 +68,44 @@ export default function EmployeeDashboard() {
 
   const todayStr = new Date().toISOString().slice(0, 10);
   const todayCalls = calls.filter((c) => c.created_at && c.created_at.slice(0, 10) === todayStr);
-  const todayFollowUps = calls.filter((c) => c.status === "Follow Up" && c.follow_up === todayStr);
+  const todayFollowUps = calls.filter((c) => c.status === "Follow Up" && c.follow_up && c.follow_up.slice(0, 10) === todayStr);
 
-  const markFollowUpDone = async (id) => {
-    const call = calls.find((c) => c.id === id);
+  // Called when user picks a new date — shows confirm modal instead of window.confirm
+  const handleRescheduleSelect = (call, newDate) => {
+    if (!newDate) return;
+    setRescheduleTarget({ id: call.id, date: newDate, name: call.name });
+  };
+
+  const confirmReschedule = async () => {
+    if (!rescheduleTarget) return;
+    const call = calls.find((c) => c.id === rescheduleTarget.id);
     if (!call) return;
     try {
-      await api.put(`calls/${id}/`, { name: call.name, phone: call.phone, project: call.project, status: "Converted", notes: call.notes, follow_up: call.follow_up });
+      await api.put(`calls/${rescheduleTarget.id}/`, { name: call.name, phone: call.phone, project: call.project, status: call.status, notes: call.notes, follow_up: rescheduleTarget.date });
       await fetchCalls();
+    } catch (e) { console.log(e.response?.data); }
+    setRescheduleTarget(null);
+  };
+
+  const confirmMarkDone = async (newStatus) => {
+    const call = calls.find((c) => c.id === doneTarget);
+    if (!call) return;
+    try {
+      await api.put(`calls/${doneTarget}/`, { name: call.name, phone: call.phone, project: call.project, status: newStatus, notes: call.notes, follow_up: call.follow_up });
+      await fetchCalls();
+    } catch (e) { console.log(e.response?.data); }
+    setDoneTarget(null);
+  };
+
+  const handleEditUpdate = async () => {
+    if (!editFollowUp) return;
+    try {
+      await api.put(`calls/${editFollowUp.id}/`, { name: editFollowUp.name, phone: editFollowUp.phone, project: editFollowUp.project, status: editFollowUp.status, notes: editFollowUp.notes, follow_up: editFollowUp.follow_up });
+      await fetchCalls();
+      setEditFollowUp(null);
     } catch (e) { console.log(e.response?.data); }
   };
 
-  const rescheduleFollowUp = async (id, newDate) => {
-    const call = calls.find((c) => c.id === id);
-    if (!call) return;
-    try {
-      await api.put(`calls/${id}/`, { name: call.name, phone: call.phone, project: call.project, status: call.status, notes: call.notes, follow_up: newDate });
-      await fetchCalls();
-    } catch (e) { console.log(e.response?.data); }
-  };
   const targetCount = target?.target_count ?? null;
   const callsDone = target?.calls_done ?? todayCalls.length;
   const targetMet = targetCount !== null && callsDone >= targetCount;
@@ -90,8 +120,10 @@ export default function EmployeeDashboard() {
     { title: "Projects", value: projects.length, icon: <FaFolderOpen />, route: "/employee/projects", color: "text-blue-400", bg: "bg-blue-500/10" },
   ];
 
+  const doneCall = doneTarget ? calls.find((c) => c.id === doneTarget) : null;
+
   return (
-    <div>
+    <div className="pb-24">
       <div className="mb-6">
         <h1 className="text-xl font-semibold text-white">Dashboard</h1>
         <p className="text-sm text-slate-400 mt-0.5">Your call activity overview</p>
@@ -166,9 +198,9 @@ export default function EmployeeDashboard() {
                     <th className="px-4 py-2.5">Client</th>
                     <th className="px-4 py-2.5">Phone</th>
                     <th className="px-4 py-2.5">Project</th>
-                    <th className="px-4 py-2.5">Notes</th>
+                    <th className="px-4 py-2.5">Scheduled Time</th>
                     <th className="px-4 py-2.5">Reschedule</th>
-                    <th className="px-4 py-2.5 text-center">Done?</th>
+                    <th className="px-4 py-2.5 text-center">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -177,24 +209,35 @@ export default function EmployeeDashboard() {
                       <td className="px-4 py-3 text-slate-100 font-medium">{call.name}</td>
                       <td className="px-4 py-3 text-slate-400">{call.phone}</td>
                       <td className="px-4 py-3 text-slate-400">{call.project || "—"}</td>
-                      <td className="px-4 py-3 text-slate-400 truncate max-w-[160px]">{call.notes || "—"}</td>
+                      <td className="px-4 py-3 text-slate-300 text-xs whitespace-nowrap font-medium">
+                        {fmtTime(call.follow_up)}
+                      </td>
                       <td className="px-4 py-3">
                         <input
-                          type="date"
+                          type="datetime-local"
                           defaultValue=""
-                          min={todayStr}
-                          onChange={(e) => { if (e.target.value) rescheduleFollowUp(call.id, e.target.value); }}
+                          min={new Date().toISOString().slice(0, 16)}
+                          onChange={(e) => handleRescheduleSelect(call, e.target.value)}
                           className="cursor-pointer bg-slate-950 border border-slate-700 text-slate-300 text-xs px-2 py-1 rounded-lg focus:outline-none focus:border-blue-500"
-                          title="Pick a date to reschedule"
+                          title="Pick date & time to reschedule"
                         />
                       </td>
-                      <td className="px-4 py-3 text-center">
-                        <button
-                          onClick={() => markFollowUpDone(call.id)}
-                          className="cursor-pointer px-3 py-1 text-xs rounded-lg bg-green-500/15 text-green-400 border border-green-500/30 hover:bg-green-500/25 transition-colors font-medium"
-                        >
-                          Mark Done
-                        </button>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center justify-center gap-2">
+                          <button
+                            onClick={() => setEditFollowUp(call)}
+                            className="cursor-pointer text-slate-400 hover:text-blue-400 transition-colors p-1"
+                            title="View / Edit"
+                          >
+                            <FaEdit />
+                          </button>
+                          <button
+                            onClick={() => setDoneTarget(call.id)}
+                            className="cursor-pointer px-3 py-1 text-xs rounded-lg bg-green-500/15 text-green-400 border border-green-500/30 hover:bg-green-500/25 transition-colors font-medium"
+                          >
+                            Done ✓
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -238,8 +281,8 @@ export default function EmployeeDashboard() {
 
               {FOLLOW_UP_STATUSES.includes(form.status) && (
                 <div>
-                  <label className="block text-xs text-slate-400 mb-1.5">Follow-up Date</label>
-                  <input type="date" name="followUp" value={form.followUp} onChange={handleChange} className={INPUT} />
+                  <label className="block text-xs text-slate-400 mb-1.5">Follow-up Date & Time</label>
+                  <input type="datetime-local" name="followUp" value={form.followUp} onChange={handleChange} className={INPUT} />
                 </div>
               )}
 
@@ -251,6 +294,138 @@ export default function EmployeeDashboard() {
               <button onClick={handleSave} disabled={saving} className="cursor-pointer flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
                 {saving ? <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Saving...</> : "Save"}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* RESCHEDULE CONFIRM MODAL */}
+      {rescheduleTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="bg-slate-900 border border-slate-700 rounded-xl shadow-xl w-[360px] p-6">
+            <h2 className="text-base font-semibold text-white mb-2">Confirm Reschedule</h2>
+            <p className="text-sm text-slate-400 mb-6">
+              Reschedule <span className="text-slate-200 font-medium">{rescheduleTarget.name}</span>'s follow-up to{" "}
+              <span className="text-yellow-400 font-medium">{rescheduleTarget.date.replace("T", " at ")}</span>?
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setRescheduleTarget(null)}
+                className="cursor-pointer flex-1 py-2.5 border border-slate-700 text-slate-300 rounded-lg text-sm hover:bg-slate-800 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmReschedule}
+                className="cursor-pointer flex-1 py-2.5 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg text-sm font-medium transition-colors"
+              >
+                Yes, Reschedule
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MARK DONE — STATUS PICKER MODAL */}
+      {doneCall && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="bg-slate-900 border border-slate-700 rounded-xl shadow-xl w-[360px] p-6">
+            <div className="flex items-center justify-between mb-1">
+              <h2 className="text-base font-semibold text-white">Mark as Done</h2>
+              <button onClick={() => setDoneTarget(null)} className="cursor-pointer text-slate-500 hover:text-white text-lg">✕</button>
+            </div>
+            <p className="text-sm text-slate-400 mb-5">
+              What's the outcome for <span className="text-slate-200 font-medium">{doneCall.name}</span>?
+            </p>
+            <div className="flex flex-col gap-2">
+              <button
+                onClick={() => confirmMarkDone("Interested")}
+                className="cursor-pointer w-full py-2.5 rounded-lg bg-blue-500/15 text-blue-400 border border-blue-500/30 hover:bg-blue-500/25 transition-colors text-sm font-medium"
+              >
+                Interested
+              </button>
+              <button
+                onClick={() => confirmMarkDone("Converted")}
+                className="cursor-pointer w-full py-2.5 rounded-lg bg-green-500/15 text-green-400 border border-green-500/30 hover:bg-green-500/25 transition-colors text-sm font-medium"
+              >
+                Converted
+              </button>
+              <button
+                onClick={() => confirmMarkDone("Not Interested")}
+                className="cursor-pointer w-full py-2.5 rounded-lg bg-red-500/15 text-red-400 border border-red-500/30 hover:bg-red-500/25 transition-colors text-sm font-medium"
+              >
+                Not Interested
+              </button>
+            </div>
+            <button onClick={() => setDoneTarget(null)} className="cursor-pointer w-full mt-3 py-2 text-slate-500 hover:text-slate-300 text-sm transition-colors">
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* EDIT FOLLOW-UP MODAL */}
+      {editFollowUp && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="bg-slate-900 border border-slate-700 rounded-xl shadow-xl w-[440px] max-h-[90vh] overflow-y-auto p-6">
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="text-base font-semibold text-white">Edit Follow-up</h2>
+              <button onClick={() => setEditFollowUp(null)} className="cursor-pointer text-slate-500 hover:text-white text-lg">✕</button>
+            </div>
+            <div className="space-y-3">
+              <input
+                type="text"
+                value={editFollowUp.name}
+                onChange={(e) => setEditFollowUp({ ...editFollowUp, name: e.target.value })}
+                placeholder="Client Name"
+                className={INPUT}
+              />
+              <input
+                type="text"
+                value={editFollowUp.phone}
+                onChange={(e) => setEditFollowUp({ ...editFollowUp, phone: e.target.value })}
+                placeholder="Phone"
+                className={INPUT}
+              />
+              <select
+                value={editFollowUp.project || ""}
+                onChange={(e) => setEditFollowUp({ ...editFollowUp, project: e.target.value })}
+                className={INPUT}
+              >
+                <option value="">Select Project</option>
+                {projects.map((p) => <option key={p.id} value={p.name}>{p.name}</option>)}
+              </select>
+              <select
+                value={editFollowUp.status}
+                onChange={(e) => setEditFollowUp({ ...editFollowUp, status: e.target.value })}
+                className={INPUT}
+              >
+                <option value="Follow Up">Follow Up</option>
+                <option value="Converted">Converted</option>
+                <option value="Interested">Interested</option>
+                <option value="Closed">Closed</option>
+                <option value="Not Interested">Not Interested</option>
+              </select>
+              <textarea
+                value={editFollowUp.notes || ""}
+                onChange={(e) => setEditFollowUp({ ...editFollowUp, notes: e.target.value })}
+                placeholder="Notes"
+                rows={4}
+                className={INPUT}
+              />
+              <div>
+                <label className="block text-xs text-slate-400 mb-1.5">Follow-up Date & Time</label>
+                <input
+                  type="datetime-local"
+                  value={toDateTimeLocal(editFollowUp.follow_up)}
+                  onChange={(e) => setEditFollowUp({ ...editFollowUp, follow_up: e.target.value })}
+                  className={INPUT}
+                />
+              </div>
+            </div>
+            <div className="flex gap-3 mt-5">
+              <button onClick={() => setEditFollowUp(null)} className="cursor-pointer flex-1 py-2.5 border border-slate-700 text-slate-300 rounded-lg text-sm hover:bg-slate-800 transition-colors">Cancel</button>
+              <button onClick={handleEditUpdate} className="cursor-pointer flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors">Update</button>
             </div>
           </div>
         </div>

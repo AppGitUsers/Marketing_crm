@@ -4,6 +4,15 @@ import api from "../../api/axios";
 
 const INPUT = "w-full px-3 py-2.5 bg-slate-950 border border-slate-700 text-slate-100 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/50 placeholder-slate-600 transition-colors";
 
+// "2026-05-16" or "2026-05-16T14:30" → "2026-05-16T14:30" for datetime-local input
+const toDateTimeLocal = (val) => {
+  if (!val) return "";
+  if (val.length === 10) return val + "T00:00";
+  return val.slice(0, 16);
+};
+
+const fmtTime = (val) => (val && val.length > 10 ? val.slice(11, 16) : "—");
+
 export default function FollowUps() {
   const [calls, setCalls] = useState([]);
   const [projects, setProjects] = useState([]);
@@ -22,7 +31,7 @@ export default function FollowUps() {
   };
 
   const followUps = calls.filter((c) => c.status === "Follow Up");
-  const today = new Date().toISOString().split("T")[0];
+  const today = new Date().toISOString().slice(0, 10);
 
   const updateStatus = async (id, newStatus) => {
     const call = calls.find((c) => c.id === id);
@@ -33,11 +42,11 @@ export default function FollowUps() {
     } catch (e) { console.log(e.response?.data); }
   };
 
-  const updateFollowUpDate = async (id, newDate) => {
+  const updateFollowUpDate = async (id, newVal) => {
     const call = calls.find((c) => c.id === id);
     if (!call) return;
     try {
-      await api.put(`calls/${id}/`, { name: call.name, phone: call.phone, project: call.project, status: call.status, notes: call.notes, follow_up: newDate });
+      await api.put(`calls/${id}/`, { name: call.name, phone: call.phone, project: call.project, status: call.status, notes: call.notes, follow_up: newVal });
       await fetchCalls();
     } catch (e) { console.log(e.response?.data); }
   };
@@ -70,13 +79,14 @@ export default function FollowUps() {
                   <th className="px-4 py-2.5">Phone</th>
                   <th className="px-4 py-2.5">Project</th>
                   <th className="px-4 py-2.5">Status</th>
-                  <th className="px-4 py-2.5">Next Follow-up</th>
+                  <th className="px-4 py-2.5">Date & Time</th>
+                  <th className="px-4 py-2.5">Time</th>
                   <th className="px-4 py-2.5 text-center">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {followUps.map((call) => {
-                  const isToday = call.follow_up === today;
+                  const isToday = call.follow_up && call.follow_up.slice(0, 10) === today;
                   return (
                     <tr key={call.id} className={`border-t border-slate-800 transition-colors ${isToday ? "bg-yellow-500/5" : "hover:bg-slate-800/40"}`}>
                       <td className="px-4 py-3 text-slate-100">{call.name}</td>
@@ -97,12 +107,15 @@ export default function FollowUps() {
                       </td>
                       <td className="px-4 py-3">
                         <input
-                          type="date"
-                          value={call.follow_up || ""}
+                          type="datetime-local"
+                          value={toDateTimeLocal(call.follow_up)}
                           onChange={(e) => updateFollowUpDate(call.id, e.target.value)}
                           className="cursor-pointer bg-slate-950 border border-slate-700 text-slate-300 text-xs px-2 py-1 rounded-lg focus:outline-none focus:border-blue-500"
                         />
                         {isToday && <span className="ml-2 text-xs text-yellow-400 font-medium">Today</span>}
+                      </td>
+                      <td className="px-4 py-3 text-slate-400 text-xs whitespace-nowrap">
+                        {fmtTime(call.follow_up)}
                       </td>
                       <td className="px-4 py-3 text-center">
                         <button onClick={() => setEditData(call)} className="cursor-pointer text-slate-400 hover:text-blue-400 transition-colors p-1">
@@ -142,8 +155,13 @@ export default function FollowUps() {
               </select>
               <textarea value={editData.notes || ""} onChange={(e) => setEditData({ ...editData, notes: e.target.value })} placeholder="Notes" rows={3} className={INPUT} />
               <div>
-                <label className="block text-xs text-slate-400 mb-1.5">Follow-up Date</label>
-                <input type="date" value={editData.follow_up || ""} onChange={(e) => setEditData({ ...editData, follow_up: e.target.value })} className={INPUT} />
+                <label className="block text-xs text-slate-400 mb-1.5">Follow-up Date & Time</label>
+                <input
+                  type="datetime-local"
+                  value={toDateTimeLocal(editData.follow_up)}
+                  onChange={(e) => setEditData({ ...editData, follow_up: e.target.value })}
+                  className={INPUT}
+                />
               </div>
             </div>
             <div className="flex gap-3 mt-5">

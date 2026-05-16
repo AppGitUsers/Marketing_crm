@@ -5,7 +5,10 @@
       "PowerShell(Get-ChildItem -Recurse \"d:\\\\Projects\\\\Marketing_crm\\\\call_tracker-backend\" -Directory | Select-Object -ExpandProperty FullName | ForEach-Object { $_.Replace\\('d:\\\\Projects\\\\Marketing_crm\\\\call_tracker-backend\\\\', ''\\) } | Sort-Object)",
       "PowerShell(Get-ChildItem -Recurse \"d:\\\\Projects\\\\Marketing_crm\\\\call_tracker-frontend\" -Directory | Select-Object -ExpandProperty FullName | ForEach-Object { $_.Replace\\('d:\\\\Projects\\\\Marketing_crm\\\\call_tracker-frontend\\\\', ''\\) } | Sort-Object)",
       "PowerShell(Get-Command py -ErrorAction SilentlyContinue)",
-      "Bash(npx vite *)"
+      "Bash(npx vite *)",
+      "Bash(python manage.py makemigrations calls --name follow_up_datetime)",
+      "Bash(\"d:\\\\Projects\\\\Marketing_crm\\\\call_tracker-backend\\\\venv\\\\Scripts\\\\python.exe\" manage.py makemigrations calls --name follow_up_datetime)",
+      "Bash(\"d:\\\\Projects\\\\Marketing_crm\\\\call_tracker-backend\\\\venv\\\\Scripts\\\\python.exe\" manage.py migrate)"
     ]
   }
 }
