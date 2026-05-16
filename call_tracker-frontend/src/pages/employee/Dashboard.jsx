@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { FaPhoneAlt, FaUserFriends, FaCheckCircle, FaRedoAlt, FaHandshake, FaFolderOpen, FaBullseye } from "react-icons/fa";
+import { FaPhoneAlt, FaUserFriends, FaCheckCircle, FaRedoAlt, FaHandshake, FaFolderOpen, FaBullseye, FaCalendarCheck } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import api from "../../api/axios";
 
@@ -57,6 +57,25 @@ export default function EmployeeDashboard() {
 
   const todayStr = new Date().toISOString().slice(0, 10);
   const todayCalls = calls.filter((c) => c.created_at && c.created_at.slice(0, 10) === todayStr);
+  const todayFollowUps = calls.filter((c) => c.status === "Follow Up" && c.follow_up === todayStr);
+
+  const markFollowUpDone = async (id) => {
+    const call = calls.find((c) => c.id === id);
+    if (!call) return;
+    try {
+      await api.put(`calls/${id}/`, { name: call.name, phone: call.phone, project: call.project, status: "Converted", notes: call.notes, follow_up: call.follow_up });
+      await fetchCalls();
+    } catch (e) { console.log(e.response?.data); }
+  };
+
+  const rescheduleFollowUp = async (id, newDate) => {
+    const call = calls.find((c) => c.id === id);
+    if (!call) return;
+    try {
+      await api.put(`calls/${id}/`, { name: call.name, phone: call.phone, project: call.project, status: call.status, notes: call.notes, follow_up: newDate });
+      await fetchCalls();
+    } catch (e) { console.log(e.response?.data); }
+  };
   const targetCount = target?.target_count ?? null;
   const callsDone = target?.calls_done ?? todayCalls.length;
   const targetMet = targetCount !== null && callsDone >= targetCount;
@@ -122,6 +141,68 @@ export default function EmployeeDashboard() {
             <p className={`text-2xl font-bold mt-0.5 ${card.color}`}>{card.value}</p>
           </div>
         ))}
+      </div>
+
+      {/* TODAY'S FOLLOW-UPS */}
+      <div className="mt-8">
+        <div className="flex items-center gap-2 mb-4">
+          <FaCalendarCheck className="text-yellow-400" />
+          <h2 className="text-base font-semibold text-white">Today's Follow-ups</h2>
+          {todayFollowUps.length > 0 && (
+            <span className="text-xs px-2 py-0.5 rounded-full bg-yellow-500/15 text-yellow-400 font-medium">{todayFollowUps.length}</span>
+          )}
+        </div>
+
+        {todayFollowUps.length === 0 ? (
+          <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 text-center">
+            <p className="text-slate-500 text-sm">No follow-ups scheduled for today</p>
+          </div>
+        ) : (
+          <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-left text-xs text-slate-500 uppercase tracking-wider bg-slate-800/50">
+                    <th className="px-4 py-2.5">Client</th>
+                    <th className="px-4 py-2.5">Phone</th>
+                    <th className="px-4 py-2.5">Project</th>
+                    <th className="px-4 py-2.5">Notes</th>
+                    <th className="px-4 py-2.5">Reschedule</th>
+                    <th className="px-4 py-2.5 text-center">Done?</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {todayFollowUps.map((call) => (
+                    <tr key={call.id} className="border-t border-slate-800 bg-yellow-500/5 hover:bg-yellow-500/10 transition-colors">
+                      <td className="px-4 py-3 text-slate-100 font-medium">{call.name}</td>
+                      <td className="px-4 py-3 text-slate-400">{call.phone}</td>
+                      <td className="px-4 py-3 text-slate-400">{call.project || "—"}</td>
+                      <td className="px-4 py-3 text-slate-400 truncate max-w-[160px]">{call.notes || "—"}</td>
+                      <td className="px-4 py-3">
+                        <input
+                          type="date"
+                          defaultValue=""
+                          min={todayStr}
+                          onChange={(e) => { if (e.target.value) rescheduleFollowUp(call.id, e.target.value); }}
+                          className="cursor-pointer bg-slate-950 border border-slate-700 text-slate-300 text-xs px-2 py-1 rounded-lg focus:outline-none focus:border-blue-500"
+                          title="Pick a date to reschedule"
+                        />
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <button
+                          onClick={() => markFollowUpDone(call.id)}
+                          className="cursor-pointer px-3 py-1 text-xs rounded-lg bg-green-500/15 text-green-400 border border-green-500/30 hover:bg-green-500/25 transition-colors font-medium"
+                        >
+                          Mark Done
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* FAB */}
