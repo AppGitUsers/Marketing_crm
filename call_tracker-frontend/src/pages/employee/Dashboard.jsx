@@ -15,6 +15,12 @@ const toDateTimeLocal = (val) => {
 };
 
 const fmtTime = (val) => (val && val.length > 10 ? val.slice(11, 16) : "—");
+const fmtDateTime = (val) => {
+  if (!val) return "—";
+  const date = val.slice(0, 10);
+  const time = val.length > 10 ? val.slice(11, 16) : "";
+  return time ? `${date} ${time}` : date;
+};
 
 export default function EmployeeDashboard() {
   const [saving, setSaving] = useState(false);
@@ -23,8 +29,8 @@ export default function EmployeeDashboard() {
   const [projects, setProjects] = useState([]);
   const [target, setTarget] = useState(null);
   const [doneTarget, setDoneTarget] = useState(null);
-  const [rescheduleTarget, setRescheduleTarget] = useState(null); // { id, date, name }
-  const [editFollowUp, setEditFollowUp] = useState(null); // call object being edited
+  const [rescheduleTarget, setRescheduleTarget] = useState(null);
+  const [editFollowUp, setEditFollowUp] = useState(null);
   const navigate = useNavigate();
 
   const [form, setForm] = useState({ name: "", phone: "", project: "", status: "", notes: "", followUp: "" });
@@ -70,7 +76,6 @@ export default function EmployeeDashboard() {
   const todayCalls = calls.filter((c) => c.created_at && c.created_at.slice(0, 10) === todayStr);
   const todayFollowUps = calls.filter((c) => c.status === "Follow Up" && c.follow_up && c.follow_up.slice(0, 10) === todayStr);
 
-  // Called when user picks a new date — shows confirm modal instead of window.confirm
   const handleRescheduleSelect = (call, newDate) => {
     if (!newDate) return;
     setRescheduleTarget({ id: call.id, date: newDate, name: call.name });
@@ -123,22 +128,22 @@ export default function EmployeeDashboard() {
   const doneCall = doneTarget ? calls.find((c) => c.id === doneTarget) : null;
 
   return (
-    <div className="pb-24">
-      <div className="mb-6">
+    <div>
+      <div className="mb-5">
         <h1 className="text-xl font-semibold text-white">Dashboard</h1>
         <p className="text-sm text-slate-400 mt-0.5">Your call activity overview</p>
       </div>
 
       {/* TARGET PROGRESS */}
       {targetCount !== null ? (
-        <div className="mb-6 bg-slate-900 border border-slate-800 rounded-xl p-5">
+        <div className="mb-5 bg-slate-900 border border-slate-800 rounded-xl p-4">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <FaBullseye className="text-blue-400" />
               <span className="text-sm font-semibold text-slate-200">Today's Target</span>
             </div>
             <span className={`text-sm font-bold ${targetMet ? "text-green-400" : "text-yellow-400"}`}>
-              {callsDone} / {targetCount} calls{targetMet && " · Met"}
+              {callsDone} / {targetCount}{targetMet && " · Met"}
             </span>
           </div>
           <div className="w-full bg-slate-800 rounded-full h-2.5">
@@ -150,7 +155,7 @@ export default function EmployeeDashboard() {
           <p className="text-xs text-slate-500 mt-1.5">{progressPct}% complete</p>
         </div>
       ) : (
-        <div className="mb-6 bg-slate-900 border border-slate-800 rounded-xl p-4">
+        <div className="mb-5 bg-slate-900 border border-slate-800 rounded-xl p-4">
           <p className="text-xs text-slate-500 flex items-center gap-2">
             <FaBullseye className="text-slate-600" />
             No target assigned for today by admin.
@@ -158,26 +163,26 @@ export default function EmployeeDashboard() {
         </div>
       )}
 
-      {/* DASHBOARD CARDS */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+      {/* STAT CARDS */}
+      <div className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
         {cards.map((card) => (
           <div
             key={card.title}
             onClick={() => navigate(card.route)}
-            className="cursor-pointer bg-slate-900 border border-slate-800 rounded-xl p-4 hover:border-slate-600 transition-colors"
+            className="cursor-pointer bg-slate-900 border border-slate-800 rounded-xl p-3 hover:border-slate-600 transition-colors"
           >
-            <div className={`w-8 h-8 rounded-lg ${card.bg} flex items-center justify-center ${card.color} text-sm mb-3`}>
+            <div className={`w-7 h-7 rounded-lg ${card.bg} flex items-center justify-center ${card.color} text-xs mb-2`}>
               {card.icon}
             </div>
-            <p className="text-slate-400 text-xs">{card.title}</p>
-            <p className={`text-2xl font-bold mt-0.5 ${card.color}`}>{card.value}</p>
+            <p className="text-slate-400 text-[10px] leading-tight">{card.title}</p>
+            <p className={`text-xl font-bold mt-0.5 ${card.color}`}>{card.value}</p>
           </div>
         ))}
       </div>
 
       {/* TODAY'S FOLLOW-UPS */}
-      <div className="mt-8">
-        <div className="flex items-center gap-2 mb-4">
+      <div className="mt-2">
+        <div className="flex items-center gap-2 mb-3">
           <FaCalendarCheck className="text-yellow-400" />
           <h2 className="text-base font-semibold text-white">Today's Follow-ups</h2>
           {todayFollowUps.length > 0 && (
@@ -191,14 +196,57 @@ export default function EmployeeDashboard() {
           </div>
         ) : (
           <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
-            <div className="overflow-x-auto">
+
+            {/* MOBILE CARD VIEW */}
+            <div className="sm:hidden divide-y divide-slate-800">
+              {todayFollowUps.map((call) => (
+                <div key={call.id} className="p-4 bg-yellow-500/5">
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="min-w-0">
+                      <p className="text-slate-100 font-medium text-sm truncate">{call.name}</p>
+                      <p className="text-slate-400 text-xs mt-0.5">{call.phone} · {call.project || "—"}</p>
+                    </div>
+                    <span className="text-xs text-yellow-400 font-medium ml-2 shrink-0">{fmtTime(call.follow_up)}</span>
+                  </div>
+                  <div className="mt-2 space-y-2">
+                    <div>
+                      <p className="text-[10px] text-slate-500 mb-1">Reschedule to:</p>
+                      <input
+                        type="datetime-local"
+                        defaultValue=""
+                        min={new Date().toISOString().slice(0, 16)}
+                        onChange={(e) => handleRescheduleSelect(call, e.target.value)}
+                        className="cursor-pointer w-full bg-slate-950 border border-slate-700 text-slate-300 text-xs px-2 py-1.5 rounded-lg focus:outline-none focus:border-blue-500"
+                      />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setEditFollowUp(call)}
+                        className="cursor-pointer flex items-center gap-1.5 px-3 py-1.5 text-xs border border-slate-700 text-slate-400 rounded-lg hover:text-blue-400 hover:border-slate-600 transition-colors"
+                      >
+                        <FaEdit size={10} /> Edit
+                      </button>
+                      <button
+                        onClick={() => setDoneTarget(call.id)}
+                        className="cursor-pointer flex-1 py-1.5 text-xs rounded-lg bg-green-500/15 text-green-400 border border-green-500/30 hover:bg-green-500/25 transition-colors font-medium text-center"
+                      >
+                        Mark Done ✓
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* DESKTOP TABLE VIEW */}
+            <div className="hidden sm:block overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="text-left text-xs text-slate-500 uppercase tracking-wider bg-slate-800/50">
                     <th className="px-4 py-2.5">Client</th>
                     <th className="px-4 py-2.5">Phone</th>
                     <th className="px-4 py-2.5">Project</th>
-                    <th className="px-4 py-2.5">Scheduled Time</th>
+                    <th className="px-4 py-2.5">Time</th>
                     <th className="px-4 py-2.5">Reschedule</th>
                     <th className="px-4 py-2.5 text-center">Actions</th>
                   </tr>
@@ -209,9 +257,7 @@ export default function EmployeeDashboard() {
                       <td className="px-4 py-3 text-slate-100 font-medium">{call.name}</td>
                       <td className="px-4 py-3 text-slate-400">{call.phone}</td>
                       <td className="px-4 py-3 text-slate-400">{call.project || "—"}</td>
-                      <td className="px-4 py-3 text-slate-300 text-xs whitespace-nowrap font-medium">
-                        {fmtTime(call.follow_up)}
-                      </td>
+                      <td className="px-4 py-3 text-slate-300 text-xs whitespace-nowrap font-medium">{fmtTime(call.follow_up)}</td>
                       <td className="px-4 py-3">
                         <input
                           type="datetime-local"
@@ -219,16 +265,11 @@ export default function EmployeeDashboard() {
                           min={new Date().toISOString().slice(0, 16)}
                           onChange={(e) => handleRescheduleSelect(call, e.target.value)}
                           className="cursor-pointer bg-slate-950 border border-slate-700 text-slate-300 text-xs px-2 py-1 rounded-lg focus:outline-none focus:border-blue-500"
-                          title="Pick date & time to reschedule"
                         />
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center justify-center gap-2">
-                          <button
-                            onClick={() => setEditFollowUp(call)}
-                            className="cursor-pointer text-slate-400 hover:text-blue-400 transition-colors p-1"
-                            title="View / Edit"
-                          >
+                          <button onClick={() => setEditFollowUp(call)} className="cursor-pointer text-slate-400 hover:text-blue-400 transition-colors p-1">
                             <FaEdit />
                           </button>
                           <button
@@ -251,15 +292,15 @@ export default function EmployeeDashboard() {
       {/* FAB */}
       <button
         onClick={() => setShowModal(true)}
-        className="cursor-pointer fixed bottom-6 right-6 px-5 py-3 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm shadow-lg transition-colors z-50"
+        className="cursor-pointer fixed bottom-[72px] md:bottom-6 right-4 md:right-6 px-5 py-3 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm shadow-lg transition-colors z-40"
       >
         + Add Call
       </button>
 
       {/* ADD CALL MODAL */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="bg-slate-900 border border-slate-700 rounded-xl shadow-xl w-[440px] max-h-[90vh] overflow-y-auto p-6">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4">
+          <div className="bg-slate-900 border border-slate-700 rounded-t-2xl sm:rounded-xl shadow-xl w-full sm:max-w-[440px] max-h-[90vh] overflow-y-auto p-6">
             <div className="flex items-center justify-between mb-5">
               <h2 className="text-base font-semibold text-white">Add Call</h2>
               <button onClick={() => setShowModal(false)} className="cursor-pointer text-slate-500 hover:text-white text-lg transition-colors">✕</button>
@@ -268,24 +309,20 @@ export default function EmployeeDashboard() {
             <div className="space-y-3">
               <input type="text" name="name" placeholder="Client Name" value={form.name} onChange={handleChange} className={INPUT} />
               <input type="text" name="phone" placeholder="Phone Number" value={form.phone} onChange={handleChange} className={INPUT} />
-
               <select name="project" value={form.project} onChange={handleChange} className={INPUT}>
                 <option value="">Select Project</option>
                 {projects.map((p) => <option key={p.id} value={p.name}>{p.name}</option>)}
               </select>
-
               <select name="status" value={form.status} onChange={handleChange} className={INPUT}>
                 <option value="">Select Status</option>
                 {ALL_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
               </select>
-
               {FOLLOW_UP_STATUSES.includes(form.status) && (
                 <div>
                   <label className="block text-xs text-slate-400 mb-1.5">Follow-up Date & Time</label>
                   <input type="datetime-local" name="followUp" value={form.followUp} onChange={handleChange} className={INPUT} />
                 </div>
               )}
-
               <textarea name="notes" value={form.notes} onChange={handleChange} placeholder="Notes" rows={2} className={INPUT} />
             </div>
 
@@ -301,35 +338,25 @@ export default function EmployeeDashboard() {
 
       {/* RESCHEDULE CONFIRM MODAL */}
       {rescheduleTarget && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="bg-slate-900 border border-slate-700 rounded-xl shadow-xl w-[360px] p-6">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4">
+          <div className="bg-slate-900 border border-slate-700 rounded-t-2xl sm:rounded-xl shadow-xl w-full sm:max-w-[360px] p-6">
             <h2 className="text-base font-semibold text-white mb-2">Confirm Reschedule</h2>
             <p className="text-sm text-slate-400 mb-6">
               Reschedule <span className="text-slate-200 font-medium">{rescheduleTarget.name}</span>'s follow-up to{" "}
               <span className="text-yellow-400 font-medium">{rescheduleTarget.date.replace("T", " at ")}</span>?
             </p>
             <div className="flex gap-3">
-              <button
-                onClick={() => setRescheduleTarget(null)}
-                className="cursor-pointer flex-1 py-2.5 border border-slate-700 text-slate-300 rounded-lg text-sm hover:bg-slate-800 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={confirmReschedule}
-                className="cursor-pointer flex-1 py-2.5 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg text-sm font-medium transition-colors"
-              >
-                Yes, Reschedule
-              </button>
+              <button onClick={() => setRescheduleTarget(null)} className="cursor-pointer flex-1 py-2.5 border border-slate-700 text-slate-300 rounded-lg text-sm hover:bg-slate-800 transition-colors">Cancel</button>
+              <button onClick={confirmReschedule} className="cursor-pointer flex-1 py-2.5 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg text-sm font-medium transition-colors">Yes, Reschedule</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* MARK DONE — STATUS PICKER MODAL */}
+      {/* MARK DONE MODAL */}
       {doneCall && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="bg-slate-900 border border-slate-700 rounded-xl shadow-xl w-[360px] p-6">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4">
+          <div className="bg-slate-900 border border-slate-700 rounded-t-2xl sm:rounded-xl shadow-xl w-full sm:max-w-[360px] p-6">
             <div className="flex items-center justify-between mb-1">
               <h2 className="text-base font-semibold text-white">Mark as Done</h2>
               <button onClick={() => setDoneTarget(null)} className="cursor-pointer text-slate-500 hover:text-white text-lg">✕</button>
@@ -338,89 +365,41 @@ export default function EmployeeDashboard() {
               What's the outcome for <span className="text-slate-200 font-medium">{doneCall.name}</span>?
             </p>
             <div className="flex flex-col gap-2">
-              <button
-                onClick={() => confirmMarkDone("Interested")}
-                className="cursor-pointer w-full py-2.5 rounded-lg bg-blue-500/15 text-blue-400 border border-blue-500/30 hover:bg-blue-500/25 transition-colors text-sm font-medium"
-              >
-                Interested
-              </button>
-              <button
-                onClick={() => confirmMarkDone("Converted")}
-                className="cursor-pointer w-full py-2.5 rounded-lg bg-green-500/15 text-green-400 border border-green-500/30 hover:bg-green-500/25 transition-colors text-sm font-medium"
-              >
-                Converted
-              </button>
-              <button
-                onClick={() => confirmMarkDone("Not Interested")}
-                className="cursor-pointer w-full py-2.5 rounded-lg bg-red-500/15 text-red-400 border border-red-500/30 hover:bg-red-500/25 transition-colors text-sm font-medium"
-              >
-                Not Interested
-              </button>
+              <button onClick={() => confirmMarkDone("Interested")} className="cursor-pointer w-full py-2.5 rounded-lg bg-blue-500/15 text-blue-400 border border-blue-500/30 hover:bg-blue-500/25 transition-colors text-sm font-medium">Interested</button>
+              <button onClick={() => confirmMarkDone("Converted")} className="cursor-pointer w-full py-2.5 rounded-lg bg-green-500/15 text-green-400 border border-green-500/30 hover:bg-green-500/25 transition-colors text-sm font-medium">Converted</button>
+              <button onClick={() => confirmMarkDone("Not Interested")} className="cursor-pointer w-full py-2.5 rounded-lg bg-red-500/15 text-red-400 border border-red-500/30 hover:bg-red-500/25 transition-colors text-sm font-medium">Not Interested</button>
             </div>
-            <button onClick={() => setDoneTarget(null)} className="cursor-pointer w-full mt-3 py-2 text-slate-500 hover:text-slate-300 text-sm transition-colors">
-              Cancel
-            </button>
+            <button onClick={() => setDoneTarget(null)} className="cursor-pointer w-full mt-3 py-2 text-slate-500 hover:text-slate-300 text-sm transition-colors">Cancel</button>
           </div>
         </div>
       )}
 
       {/* EDIT FOLLOW-UP MODAL */}
       {editFollowUp && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="bg-slate-900 border border-slate-700 rounded-xl shadow-xl w-[440px] max-h-[90vh] overflow-y-auto p-6">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4">
+          <div className="bg-slate-900 border border-slate-700 rounded-t-2xl sm:rounded-xl shadow-xl w-full sm:max-w-[440px] max-h-[90vh] overflow-y-auto p-6">
             <div className="flex items-center justify-between mb-5">
               <h2 className="text-base font-semibold text-white">Edit Follow-up</h2>
               <button onClick={() => setEditFollowUp(null)} className="cursor-pointer text-slate-500 hover:text-white text-lg">✕</button>
             </div>
             <div className="space-y-3">
-              <input
-                type="text"
-                value={editFollowUp.name}
-                onChange={(e) => setEditFollowUp({ ...editFollowUp, name: e.target.value })}
-                placeholder="Client Name"
-                className={INPUT}
-              />
-              <input
-                type="text"
-                value={editFollowUp.phone}
-                onChange={(e) => setEditFollowUp({ ...editFollowUp, phone: e.target.value })}
-                placeholder="Phone"
-                className={INPUT}
-              />
-              <select
-                value={editFollowUp.project || ""}
-                onChange={(e) => setEditFollowUp({ ...editFollowUp, project: e.target.value })}
-                className={INPUT}
-              >
+              <input type="text" value={editFollowUp.name} onChange={(e) => setEditFollowUp({ ...editFollowUp, name: e.target.value })} placeholder="Client Name" className={INPUT} />
+              <input type="text" value={editFollowUp.phone} onChange={(e) => setEditFollowUp({ ...editFollowUp, phone: e.target.value })} placeholder="Phone" className={INPUT} />
+              <select value={editFollowUp.project || ""} onChange={(e) => setEditFollowUp({ ...editFollowUp, project: e.target.value })} className={INPUT}>
                 <option value="">Select Project</option>
                 {projects.map((p) => <option key={p.id} value={p.name}>{p.name}</option>)}
               </select>
-              <select
-                value={editFollowUp.status}
-                onChange={(e) => setEditFollowUp({ ...editFollowUp, status: e.target.value })}
-                className={INPUT}
-              >
+              <select value={editFollowUp.status} onChange={(e) => setEditFollowUp({ ...editFollowUp, status: e.target.value })} className={INPUT}>
                 <option value="Follow Up">Follow Up</option>
                 <option value="Converted">Converted</option>
                 <option value="Interested">Interested</option>
                 <option value="Closed">Closed</option>
                 <option value="Not Interested">Not Interested</option>
               </select>
-              <textarea
-                value={editFollowUp.notes || ""}
-                onChange={(e) => setEditFollowUp({ ...editFollowUp, notes: e.target.value })}
-                placeholder="Notes"
-                rows={4}
-                className={INPUT}
-              />
+              <textarea value={editFollowUp.notes || ""} onChange={(e) => setEditFollowUp({ ...editFollowUp, notes: e.target.value })} placeholder="Notes" rows={4} className={INPUT} />
               <div>
                 <label className="block text-xs text-slate-400 mb-1.5">Follow-up Date & Time</label>
-                <input
-                  type="datetime-local"
-                  value={toDateTimeLocal(editFollowUp.follow_up)}
-                  onChange={(e) => setEditFollowUp({ ...editFollowUp, follow_up: e.target.value })}
-                  className={INPUT}
-                />
+                <input type="datetime-local" value={toDateTimeLocal(editFollowUp.follow_up)} onChange={(e) => setEditFollowUp({ ...editFollowUp, follow_up: e.target.value })} className={INPUT} />
               </div>
             </div>
             <div className="flex gap-3 mt-5">

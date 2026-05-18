@@ -38,24 +38,24 @@ export default function AdminDashboard() {
 
   return (
     <div>
-      <div className="mb-6">
+      <div className="mb-5">
         <h1 className="text-xl font-semibold text-white">Dashboard</h1>
         <p className="text-sm text-slate-400 mt-0.5">Overview of your CRM activity</p>
       </div>
 
       {/* STAT CARDS */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+      <div className="grid grid-cols-3 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-8">
         {stats.map((s) => (
           <div
             key={s.label}
             onClick={() => navigate(s.route)}
-            className="cursor-pointer bg-slate-900 border border-slate-800 rounded-xl p-4 hover:border-slate-600 transition-colors"
+            className="cursor-pointer bg-slate-900 border border-slate-800 rounded-xl p-3 hover:border-slate-600 transition-colors"
           >
-            <div className={`w-8 h-8 rounded-lg ${s.bg} flex items-center justify-center ${s.color} text-sm mb-3`}>
+            <div className={`w-7 h-7 rounded-lg ${s.bg} flex items-center justify-center ${s.color} text-xs mb-2`}>
               {s.icon}
             </div>
-            <p className="text-slate-400 text-xs">{s.label}</p>
-            <p className={`text-2xl font-bold mt-0.5 ${s.color}`}>{s.value}</p>
+            <p className="text-slate-400 text-[10px] leading-tight">{s.label}</p>
+            <p className={`text-xl font-bold mt-0.5 ${s.color}`}>{s.value}</p>
           </div>
         ))}
       </div>
@@ -92,30 +92,46 @@ export default function AdminDashboard() {
         {calls.length === 0 ? (
           <p className="text-slate-500 text-sm text-center py-8">No calls recorded yet.</p>
         ) : (
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="text-left text-xs text-slate-500 uppercase tracking-wider bg-slate-800/50">
-                <th className="px-4 py-2.5">Client</th>
-                <th className="px-4 py-2.5">Employee</th>
-                <th className="px-4 py-2.5">Status</th>
-                <th className="px-4 py-2.5">Follow Up</th>
-              </tr>
-            </thead>
-            <tbody>
+          <>
+            {/* MOBILE CARD VIEW */}
+            <div className="sm:hidden divide-y divide-slate-800">
               {calls.slice(0, 8).map((call) => (
-                <tr key={call.id} className="border-t border-slate-800 hover:bg-slate-800/40 transition-colors">
-                  <td className="px-4 py-3 text-slate-100">{call.name}</td>
-                  <td className="px-4 py-3 text-slate-400">{call.employee_name || "—"}</td>
-                  <td className="px-4 py-3">
-                    <span className={`px-2 py-0.5 text-xs rounded-md ${STATUS_COLOR[call.status] || "bg-slate-500/10 text-slate-400"}`}>
-                      {call.status}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-slate-400">{call.follow_up || "—"}</td>
-                </tr>
+                <div key={call.id} className="px-4 py-3 hover:bg-slate-800/40 transition-colors">
+                  <div className="flex items-center justify-between">
+                    <p className="text-slate-100 text-sm font-medium truncate flex-1">{call.name}</p>
+                    <span className={`ml-2 shrink-0 px-2 py-0.5 text-xs rounded-md ${STATUS_COLOR[call.status] || "bg-slate-500/10 text-slate-400"}`}>{call.status}</span>
+                  </div>
+                  <p className="text-slate-400 text-xs mt-0.5">{call.employee_name || "—"}{call.follow_up ? ` · ${call.follow_up}` : ""}</p>
+                </div>
               ))}
-            </tbody>
-          </table>
+            </div>
+
+            {/* DESKTOP TABLE VIEW */}
+            <div className="hidden sm:block overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-left text-xs text-slate-500 uppercase tracking-wider bg-slate-800/50">
+                    <th className="px-4 py-2.5">Client</th>
+                    <th className="px-4 py-2.5">Employee</th>
+                    <th className="px-4 py-2.5">Status</th>
+                    <th className="px-4 py-2.5">Follow Up</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {calls.slice(0, 8).map((call) => (
+                    <tr key={call.id} className="border-t border-slate-800 hover:bg-slate-800/40 transition-colors">
+                      <td className="px-4 py-3 text-slate-100">{call.name}</td>
+                      <td className="px-4 py-3 text-slate-400">{call.employee_name || "—"}</td>
+                      <td className="px-4 py-3">
+                        <span className={`px-2 py-0.5 text-xs rounded-md ${STATUS_COLOR[call.status] || "bg-slate-500/10 text-slate-400"}`}>{call.status}</span>
+                      </td>
+                      <td className="px-4 py-3 text-slate-400">{call.follow_up || "—"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
     </div>

@@ -114,36 +114,30 @@ export default function Employees() {
 
   return (
     <div>
-      <div className="mb-6 flex items-center justify-between">
-        <div>
+      <div className="mb-5 flex items-center justify-between gap-3">
+        <div className="min-w-0">
           <h1 className="text-xl font-semibold text-white">Employees</h1>
           <p className="text-sm text-slate-400 mt-0.5">{employees.length} total members</p>
         </div>
         <button
           onClick={openCreate}
-          className="cursor-pointer flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
+          className="cursor-pointer shrink-0 flex items-center gap-2 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
         >
-          <FaPlus className="text-xs" /> Add Employee
+          <FaPlus className="text-xs" /> <span className="hidden sm:inline">Add Employee</span><span className="sm:hidden">Add</span>
         </button>
       </div>
 
       <div className="mb-5">
-        <input
-          type="text"
-          placeholder="Search employees..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className={INPUT}
-        />
+        <input type="text" placeholder="Search employees..." value={search} onChange={(e) => setSearch(e.target.value)} className={INPUT} />
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
         {filteredEmployees.length === 0 ? (
           <p className="text-slate-500 text-sm col-span-full text-center py-8">No employees found</p>
         ) : (
           filteredEmployees.map((emp) => (
-            <div key={emp.id} className="bg-slate-900 border border-slate-800 rounded-xl p-4 hover:border-slate-600 transition-colors">
-              <div className="w-9 h-9 rounded-full bg-blue-600/20 text-blue-400 flex items-center justify-center font-semibold text-sm mb-3">
+            <div key={emp.id} className="bg-slate-900 border border-slate-800 rounded-xl p-3 hover:border-slate-600 transition-colors">
+              <div className="w-9 h-9 rounded-full bg-blue-600/20 text-blue-400 flex items-center justify-center font-semibold text-sm mb-2">
                 {emp.employee_name?.charAt(0)?.toUpperCase() || "E"}
               </div>
               <h3 className="text-slate-200 text-sm font-semibold truncate">{emp.employee_name}</h3>
@@ -152,16 +146,12 @@ export default function Employees() {
               <p className="text-slate-500 text-xs truncate">{emp.phone}</p>
               <p className="text-slate-500 text-xs truncate">{emp.department} · {emp.designation}</p>
               <p className="text-green-400 text-xs mt-1">₹{emp.salary}</p>
-              <span className={`inline-block mt-2 px-2 py-0.5 text-[10px] rounded-md font-medium ${emp.is_active ? "bg-green-500/10 text-green-400" : "bg-red-500/10 text-red-400"}`}>
+              <span className={`inline-block mt-1.5 px-2 py-0.5 text-[10px] rounded-md font-medium ${emp.is_active ? "bg-green-500/10 text-green-400" : "bg-red-500/10 text-red-400"}`}>
                 {emp.is_active ? "Active" : "Inactive"}
               </span>
-              <div className="flex justify-end gap-2 mt-3 pt-2 border-t border-slate-800">
-                <button onClick={() => openEdit(emp)} className="cursor-pointer text-slate-400 hover:text-blue-400 text-sm transition-colors" title="Edit">
-                  <FaEdit />
-                </button>
-                <button onClick={() => handleDelete(emp.id)} className="cursor-pointer text-slate-400 hover:text-red-400 text-sm transition-colors" title="Delete">
-                  <FaTrash />
-                </button>
+              <div className="flex justify-end gap-2 mt-2 pt-2 border-t border-slate-800">
+                <button onClick={() => openEdit(emp)} className="cursor-pointer text-slate-400 hover:text-blue-400 text-sm transition-colors p-0.5" title="Edit"><FaEdit /></button>
+                <button onClick={() => handleDelete(emp.id)} className="cursor-pointer text-slate-400 hover:text-red-400 text-sm transition-colors p-0.5" title="Delete"><FaTrash /></button>
               </div>
             </div>
           ))
@@ -169,8 +159,8 @@ export default function Employees() {
       </div>
 
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="bg-slate-900 border border-slate-700 rounded-xl shadow-xl w-[440px] max-h-[90vh] overflow-y-auto p-6">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4">
+          <div className="bg-slate-900 border border-slate-700 rounded-t-2xl sm:rounded-xl shadow-xl w-full sm:max-w-[440px] max-h-[90vh] overflow-y-auto p-6">
             <div className="flex items-center justify-between mb-5">
               <h2 className="text-base font-semibold text-white">{editId ? "Edit Employee" : "Add Employee"}</h2>
               <button onClick={() => setShowModal(false)} className="cursor-pointer text-slate-500 hover:text-white text-lg transition-colors">✕</button>
@@ -198,9 +188,7 @@ export default function Employees() {
             </div>
 
             <div className="flex gap-3 mt-5">
-              <button onClick={() => setShowModal(false)} className="cursor-pointer flex-1 py-2.5 border border-slate-700 text-slate-300 rounded-lg text-sm hover:bg-slate-800 transition-colors">
-                Cancel
-              </button>
+              <button onClick={() => setShowModal(false)} className="cursor-pointer flex-1 py-2.5 border border-slate-700 text-slate-300 rounded-lg text-sm hover:bg-slate-800 transition-colors">Cancel</button>
               <button onClick={handleSave} disabled={saving} className="cursor-pointer flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50">
                 {saving ? "Saving..." : "Save"}
               </button>

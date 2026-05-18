@@ -89,11 +89,9 @@ export default function MyCalls() {
 
   return (
     <div>
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-semibold text-white">My Calls</h1>
-          <p className="text-sm text-slate-400 mt-0.5">{calls.length} total calls recorded</p>
-        </div>
+      <div className="mb-5">
+        <h1 className="text-xl font-semibold text-white">My Calls</h1>
+        <p className="text-sm text-slate-400 mt-0.5">{calls.length} total calls recorded</p>
       </div>
 
       <div className="mb-4">
@@ -110,70 +108,93 @@ export default function MyCalls() {
         {filteredCalls.length === 0 ? (
           <p className="text-slate-500 text-sm text-center py-8">No calls found</p>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-left text-xs text-slate-500 uppercase tracking-wider bg-slate-800/50">
-                  <th className="px-4 py-2.5">Client</th>
-                  <th className="px-4 py-2.5">Phone</th>
-                  <th className="px-4 py-2.5">Project</th>
-                  <th className="px-4 py-2.5">Status</th>
-                  <th className="px-4 py-2.5">Follow Up</th>
-                  <th className="px-4 py-2.5">Added At</th>
-                  <th className="px-4 py-2.5 text-center">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {paginatedCalls.map((call) => (
-                  <tr key={call.id} className="border-t border-slate-800 hover:bg-slate-800/40 transition-colors">
-                    <td className="px-4 py-3 text-slate-100">{call.name}</td>
-                    <td className="px-4 py-3 text-slate-400">{call.phone}</td>
-                    <td className="px-4 py-3 text-slate-400">{call.project || "—"}</td>
-                    <td className="px-4 py-3">
-                      <span className={`px-2 py-0.5 text-xs rounded-md ${STATUS_COLOR[call.status] || "bg-slate-500/10 text-slate-400"}`}>{call.status}</span>
-                    </td>
-                    <td className="px-4 py-3 text-slate-400">{call.follow_up || "—"}</td>
-                    <td className="px-4 py-3 text-slate-500 text-xs whitespace-nowrap">{formatDateTime(call.created_at)}</td>
-                    <td className="px-4 py-3 text-center">
-                      <div className="flex justify-center items-center gap-3">
-                        <button onClick={() => setEditData(call)} className="cursor-pointer text-slate-400 hover:text-blue-400 transition-colors p-1" title="Edit">
-                          <FaEdit />
-                        </button>
-                        <button onClick={() => handleDelete(call.id)} className="cursor-pointer text-slate-400 hover:text-red-400 transition-colors p-1" title="Delete">
-                          <FaTrash />
-                        </button>
-                      </div>
-                    </td>
+          <>
+            {/* MOBILE CARD VIEW */}
+            <div className="sm:hidden divide-y divide-slate-800">
+              {paginatedCalls.map((call) => (
+                <div key={call.id} className="p-4 hover:bg-slate-800/30 transition-colors">
+                  <div className="flex items-start justify-between mb-1.5">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-slate-100 font-medium text-sm truncate">{call.name}</p>
+                      <p className="text-slate-400 text-xs mt-0.5">{call.phone}</p>
+                    </div>
+                    <span className={`ml-2 shrink-0 px-2 py-0.5 text-xs rounded-md ${STATUS_COLOR[call.status] || "bg-slate-500/10 text-slate-400"}`}>
+                      {call.status}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between mt-2">
+                    <p className="text-slate-500 text-xs">{call.project || "—"} · {formatDateTime(call.created_at)}</p>
+                    <div className="flex gap-3 ml-2">
+                      <button onClick={() => setEditData(call)} className="cursor-pointer text-slate-400 hover:text-blue-400 transition-colors p-1">
+                        <FaEdit size={13} />
+                      </button>
+                      <button onClick={() => handleDelete(call.id)} className="cursor-pointer text-slate-400 hover:text-red-400 transition-colors p-1">
+                        <FaTrash size={13} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* DESKTOP TABLE VIEW */}
+            <div className="hidden sm:block overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-left text-xs text-slate-500 uppercase tracking-wider bg-slate-800/50">
+                    <th className="px-4 py-2.5">Client</th>
+                    <th className="px-4 py-2.5">Phone</th>
+                    <th className="px-4 py-2.5">Project</th>
+                    <th className="px-4 py-2.5">Status</th>
+                    <th className="px-4 py-2.5">Follow Up</th>
+                    <th className="px-4 py-2.5">Added At</th>
+                    <th className="px-4 py-2.5 text-center">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {paginatedCalls.map((call) => (
+                    <tr key={call.id} className="border-t border-slate-800 hover:bg-slate-800/40 transition-colors">
+                      <td className="px-4 py-3 text-slate-100">{call.name}</td>
+                      <td className="px-4 py-3 text-slate-400">{call.phone}</td>
+                      <td className="px-4 py-3 text-slate-400">{call.project || "—"}</td>
+                      <td className="px-4 py-3">
+                        <span className={`px-2 py-0.5 text-xs rounded-md ${STATUS_COLOR[call.status] || "bg-slate-500/10 text-slate-400"}`}>{call.status}</span>
+                      </td>
+                      <td className="px-4 py-3 text-slate-400">{call.follow_up || "—"}</td>
+                      <td className="px-4 py-3 text-slate-500 text-xs whitespace-nowrap">{formatDateTime(call.created_at)}</td>
+                      <td className="px-4 py-3 text-center">
+                        <div className="flex justify-center items-center gap-3">
+                          <button onClick={() => setEditData(call)} className="cursor-pointer text-slate-400 hover:text-blue-400 transition-colors p-1"><FaEdit /></button>
+                          <button onClick={() => handleDelete(call.id)} className="cursor-pointer text-slate-400 hover:text-red-400 transition-colors p-1"><FaTrash /></button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
 
       {/* PAGINATION */}
       {totalPages > 1 && (
         <div className="flex items-center justify-center gap-3 mt-4">
-          <button onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))} disabled={currentPage === 1} className="cursor-pointer px-3 py-1.5 border border-slate-700 text-slate-300 text-xs rounded-lg hover:bg-slate-800 disabled:opacity-40 transition-colors">
-            Prev
-          </button>
+          <button onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))} disabled={currentPage === 1} className="cursor-pointer px-3 py-1.5 border border-slate-700 text-slate-300 text-xs rounded-lg hover:bg-slate-800 disabled:opacity-40 transition-colors">Prev</button>
           <span className="text-slate-400 text-xs">Page {currentPage} of {totalPages}</span>
-          <button onClick={() => setCurrentPage((p) => (p < totalPages ? p + 1 : p))} disabled={currentPage === totalPages} className="cursor-pointer px-3 py-1.5 border border-slate-700 text-slate-300 text-xs rounded-lg hover:bg-slate-800 disabled:opacity-40 transition-colors">
-            Next
-          </button>
+          <button onClick={() => setCurrentPage((p) => (p < totalPages ? p + 1 : p))} disabled={currentPage === totalPages} className="cursor-pointer px-3 py-1.5 border border-slate-700 text-slate-300 text-xs rounded-lg hover:bg-slate-800 disabled:opacity-40 transition-colors">Next</button>
         </div>
       )}
 
       {/* FAB */}
-      <button onClick={() => setShowModal(true)} className="cursor-pointer fixed bottom-6 right-6 px-5 py-3 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm shadow-lg transition-colors z-50 flex items-center gap-2">
+      <button onClick={() => setShowModal(true)} className="cursor-pointer fixed bottom-[72px] md:bottom-6 right-4 md:right-6 px-5 py-3 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm shadow-lg transition-colors z-40 flex items-center gap-2">
         <FaPlus className="text-xs" /> Add Call
       </button>
 
       {/* ADD MODAL */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="bg-slate-900 border border-slate-700 rounded-xl shadow-xl w-[440px] max-h-[90vh] overflow-y-auto p-6">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4">
+          <div className="bg-slate-900 border border-slate-700 rounded-t-2xl sm:rounded-xl shadow-xl w-full sm:max-w-[440px] max-h-[90vh] overflow-y-auto p-6">
             <div className="flex items-center justify-between mb-5">
               <h2 className="text-base font-semibold text-white">Add Call</h2>
               <button onClick={() => setShowModal(false)} className="cursor-pointer text-slate-500 hover:text-white text-lg">✕</button>
@@ -209,8 +230,8 @@ export default function MyCalls() {
 
       {/* EDIT MODAL */}
       {editData && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="bg-slate-900 border border-slate-700 rounded-xl shadow-xl w-[440px] max-h-[90vh] overflow-y-auto p-6">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4">
+          <div className="bg-slate-900 border border-slate-700 rounded-t-2xl sm:rounded-xl shadow-xl w-full sm:max-w-[440px] max-h-[90vh] overflow-y-auto p-6">
             <div className="flex items-center justify-between mb-5">
               <h2 className="text-base font-semibold text-white">Edit Call</h2>
               <button onClick={() => setEditData(null)} className="cursor-pointer text-slate-500 hover:text-white text-lg">✕</button>

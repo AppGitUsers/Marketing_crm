@@ -8,7 +8,10 @@
       "Bash(npx vite *)",
       "Bash(python manage.py makemigrations calls --name follow_up_datetime)",
       "Bash(\"d:\\\\Projects\\\\Marketing_crm\\\\call_tracker-backend\\\\venv\\\\Scripts\\\\python.exe\" manage.py makemigrations calls --name follow_up_datetime)",
-      "Bash(\"d:\\\\Projects\\\\Marketing_crm\\\\call_tracker-backend\\\\venv\\\\Scripts\\\\python.exe\" manage.py migrate)"
+      "Bash(\"d:\\\\Projects\\\\Marketing_crm\\\\call_tracker-backend\\\\venv\\\\Scripts\\\\python.exe\" manage.py migrate)",
+      "Bash(cd /d \"d:\\\\Projects\\\\Marketing_crm\")",
+      "Bash(Get-ChildItem -Recurse)",
+      "Bash(Select-Object FullName)"
     ]
   }
 }

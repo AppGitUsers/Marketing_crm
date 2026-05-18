@@ -42,13 +42,13 @@ export default function Reports() {
 
   return (
     <div>
-      <div className="mb-6">
+      <div className="mb-5">
         <h1 className="text-xl font-semibold text-white">Reports & Analytics</h1>
         <p className="text-sm text-slate-400 mt-0.5">Overview of CRM performance</p>
       </div>
 
       {/* SUMMARY CARDS */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 mb-6">
         {summaryCards.map((s) => (
           <div key={s.label} className="bg-slate-900 border border-slate-800 rounded-xl p-4">
             <div className={`w-8 h-8 rounded-lg ${s.bg} flex items-center justify-center ${s.color} text-sm mb-3`}>
@@ -106,7 +106,7 @@ export default function Reports() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
         {/* TODAY FOLLOW-UPS */}
         <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
           <div className="px-4 py-3 border-b border-slate-800">

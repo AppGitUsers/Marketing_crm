@@ -4,7 +4,6 @@ import api from "../../api/axios";
 
 const INPUT = "w-full px-3 py-2.5 bg-slate-950 border border-slate-700 text-slate-100 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/50 placeholder-slate-600 transition-colors";
 
-// "2026-05-16" or "2026-05-16T14:30" → "2026-05-16T14:30" for datetime-local input
 const toDateTimeLocal = (val) => {
   if (!val) return "";
   if (val.length === 10) return val + "T00:00";
@@ -62,7 +61,7 @@ export default function FollowUps() {
 
   return (
     <div>
-      <div className="mb-6">
+      <div className="mb-5">
         <h1 className="text-xl font-semibold text-white">Follow-up Calls</h1>
         <p className="text-sm text-slate-400 mt-0.5">{followUps.length} pending follow-ups</p>
       </div>
@@ -71,70 +70,106 @@ export default function FollowUps() {
         {followUps.length === 0 ? (
           <p className="text-slate-500 text-sm text-center py-8">No follow-ups scheduled</p>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-left text-xs text-slate-500 uppercase tracking-wider bg-slate-800/50">
-                  <th className="px-4 py-2.5">Client</th>
-                  <th className="px-4 py-2.5">Phone</th>
-                  <th className="px-4 py-2.5">Project</th>
-                  <th className="px-4 py-2.5">Status</th>
-                  <th className="px-4 py-2.5">Date & Time</th>
-                  <th className="px-4 py-2.5">Time</th>
-                  <th className="px-4 py-2.5 text-center">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {followUps.map((call) => {
-                  const isToday = call.follow_up && call.follow_up.slice(0, 10) === today;
-                  return (
-                    <tr key={call.id} className={`border-t border-slate-800 transition-colors ${isToday ? "bg-yellow-500/5" : "hover:bg-slate-800/40"}`}>
-                      <td className="px-4 py-3 text-slate-100">{call.name}</td>
-                      <td className="px-4 py-3 text-slate-400">{call.phone}</td>
-                      <td className="px-4 py-3 text-slate-400">{call.project || "—"}</td>
-                      <td className="px-4 py-3">
-                        <select
-                          value={call.status}
-                          onChange={(e) => updateStatus(call.id, e.target.value)}
-                          className="cursor-pointer bg-slate-950 border border-slate-700 text-slate-300 rounded-lg px-2 py-1 text-xs focus:outline-none focus:border-blue-500"
-                        >
-                          <option value="Follow Up">Follow Up</option>
-                          <option value="Converted">Converted</option>
-                          <option value="Interested">Interested</option>
-                          <option value="Closed">Closed</option>
-                          <option value="Not Interested">Not Interested</option>
-                        </select>
-                      </td>
-                      <td className="px-4 py-3">
+          <>
+            {/* MOBILE CARD VIEW */}
+            <div className="sm:hidden divide-y divide-slate-800">
+              {followUps.map((call) => {
+                const isToday = call.follow_up && call.follow_up.slice(0, 10) === today;
+                return (
+                  <div key={call.id} className={`p-4 transition-colors ${isToday ? "bg-yellow-500/5" : "hover:bg-slate-800/30"}`}>
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <p className="text-slate-100 font-medium text-sm truncate">{call.name}</p>
+                          {isToday && <span className="shrink-0 text-[10px] px-1.5 py-0.5 bg-yellow-500/15 text-yellow-400 rounded font-medium">Today</span>}
+                        </div>
+                        <p className="text-slate-400 text-xs mt-0.5">{call.phone} · {call.project || "—"}</p>
+                        <p className="text-slate-500 text-xs mt-0.5">Time: {fmtTime(call.follow_up)}</p>
+                      </div>
+                      <button onClick={() => setEditData(call)} className="cursor-pointer text-slate-400 hover:text-blue-400 p-1 ml-2 shrink-0">
+                        <FaEdit size={13} />
+                      </button>
+                    </div>
+                    <div className="mt-2 space-y-2">
+                      <select
+                        value={call.status}
+                        onChange={(e) => updateStatus(call.id, e.target.value)}
+                        className="cursor-pointer w-full bg-slate-950 border border-slate-700 text-slate-300 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:border-blue-500"
+                      >
+                        <option value="Follow Up">Follow Up</option>
+                        <option value="Converted">Converted</option>
+                        <option value="Interested">Interested</option>
+                        <option value="Closed">Closed</option>
+                        <option value="Not Interested">Not Interested</option>
+                      </select>
+                      <div>
+                        <p className="text-[10px] text-slate-500 mb-1">Reschedule to:</p>
                         <input
                           type="datetime-local"
                           value={toDateTimeLocal(call.follow_up)}
                           onChange={(e) => updateFollowUpDate(call.id, e.target.value)}
-                          className="cursor-pointer bg-slate-950 border border-slate-700 text-slate-300 text-xs px-2 py-1 rounded-lg focus:outline-none focus:border-blue-500"
+                          className="cursor-pointer w-full bg-slate-950 border border-slate-700 text-slate-300 text-xs px-2 py-1.5 rounded-lg focus:outline-none focus:border-blue-500"
                         />
-                        {isToday && <span className="ml-2 text-xs text-yellow-400 font-medium">Today</span>}
-                      </td>
-                      <td className="px-4 py-3 text-slate-400 text-xs whitespace-nowrap">
-                        {fmtTime(call.follow_up)}
-                      </td>
-                      <td className="px-4 py-3 text-center">
-                        <button onClick={() => setEditData(call)} className="cursor-pointer text-slate-400 hover:text-blue-400 transition-colors p-1">
-                          <FaEdit />
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* DESKTOP TABLE VIEW */}
+            <div className="hidden sm:block overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-left text-xs text-slate-500 uppercase tracking-wider bg-slate-800/50">
+                    <th className="px-4 py-2.5">Client</th>
+                    <th className="px-4 py-2.5">Phone</th>
+                    <th className="px-4 py-2.5">Project</th>
+                    <th className="px-4 py-2.5">Status</th>
+                    <th className="px-4 py-2.5">Date & Time</th>
+                    <th className="px-4 py-2.5">Time</th>
+                    <th className="px-4 py-2.5 text-center">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {followUps.map((call) => {
+                    const isToday = call.follow_up && call.follow_up.slice(0, 10) === today;
+                    return (
+                      <tr key={call.id} className={`border-t border-slate-800 transition-colors ${isToday ? "bg-yellow-500/5" : "hover:bg-slate-800/40"}`}>
+                        <td className="px-4 py-3 text-slate-100">{call.name}</td>
+                        <td className="px-4 py-3 text-slate-400">{call.phone}</td>
+                        <td className="px-4 py-3 text-slate-400">{call.project || "—"}</td>
+                        <td className="px-4 py-3">
+                          <select value={call.status} onChange={(e) => updateStatus(call.id, e.target.value)} className="cursor-pointer bg-slate-950 border border-slate-700 text-slate-300 rounded-lg px-2 py-1 text-xs focus:outline-none focus:border-blue-500">
+                            <option value="Follow Up">Follow Up</option>
+                            <option value="Converted">Converted</option>
+                            <option value="Interested">Interested</option>
+                            <option value="Closed">Closed</option>
+                            <option value="Not Interested">Not Interested</option>
+                          </select>
+                        </td>
+                        <td className="px-4 py-3">
+                          <input type="datetime-local" value={toDateTimeLocal(call.follow_up)} onChange={(e) => updateFollowUpDate(call.id, e.target.value)} className="cursor-pointer bg-slate-950 border border-slate-700 text-slate-300 text-xs px-2 py-1 rounded-lg focus:outline-none focus:border-blue-500" />
+                          {isToday && <span className="ml-2 text-xs text-yellow-400 font-medium">Today</span>}
+                        </td>
+                        <td className="px-4 py-3 text-slate-400 text-xs whitespace-nowrap">{fmtTime(call.follow_up)}</td>
+                        <td className="px-4 py-3 text-center">
+                          <button onClick={() => setEditData(call)} className="cursor-pointer text-slate-400 hover:text-blue-400 transition-colors p-1"><FaEdit /></button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
 
       {/* EDIT MODAL */}
       {editData && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="bg-slate-900 border border-slate-700 rounded-xl shadow-xl w-[440px] max-h-[90vh] overflow-y-auto p-6">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4">
+          <div className="bg-slate-900 border border-slate-700 rounded-t-2xl sm:rounded-xl shadow-xl w-full sm:max-w-[440px] max-h-[90vh] overflow-y-auto p-6">
             <div className="flex items-center justify-between mb-5">
               <h2 className="text-base font-semibold text-white">Edit Follow-up</h2>
               <button onClick={() => setEditData(null)} className="cursor-pointer text-slate-500 hover:text-white text-lg">✕</button>
@@ -156,12 +191,7 @@ export default function FollowUps() {
               <textarea value={editData.notes || ""} onChange={(e) => setEditData({ ...editData, notes: e.target.value })} placeholder="Notes" rows={3} className={INPUT} />
               <div>
                 <label className="block text-xs text-slate-400 mb-1.5">Follow-up Date & Time</label>
-                <input
-                  type="datetime-local"
-                  value={toDateTimeLocal(editData.follow_up)}
-                  onChange={(e) => setEditData({ ...editData, follow_up: e.target.value })}
-                  className={INPUT}
-                />
+                <input type="datetime-local" value={toDateTimeLocal(editData.follow_up)} onChange={(e) => setEditData({ ...editData, follow_up: e.target.value })} className={INPUT} />
               </div>
             </div>
             <div className="flex gap-3 mt-5">

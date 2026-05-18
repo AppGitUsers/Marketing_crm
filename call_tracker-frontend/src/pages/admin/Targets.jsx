@@ -66,7 +66,7 @@ export default function Targets() {
 
   return (
     <div>
-      <div className="mb-6">
+      <div className="mb-5">
         <h1 className="text-xl font-semibold text-white">Daily Targets</h1>
         <p className="text-sm text-slate-400 mt-0.5">Set and track employee call targets</p>
       </div>
@@ -76,25 +76,27 @@ export default function Targets() {
       </div>
 
       {/* DATE PICKER */}
-      <div className="mb-6 flex items-center gap-3 flex-wrap">
-        <div className="flex items-center gap-2 text-sm text-slate-400">
+      <div className="mb-6">
+        <div className="flex items-center gap-2 text-sm text-slate-400 mb-2">
           <FaCalendarAlt className="text-blue-400" />
-          <span>Track date:</span>
+          <span>Track date</span>
         </div>
-        <input
-          type="date"
-          value={trackDate}
-          onChange={(e) => setTrackDate(e.target.value)}
-          className="px-3 py-2 bg-slate-950 border border-slate-700 text-slate-100 rounded-lg text-sm focus:outline-none focus:border-blue-500 cursor-pointer"
-        />
-        <button onClick={() => setTrackDate(todayStr())} className="cursor-pointer text-xs px-3 py-2 border border-slate-700 text-slate-300 rounded-lg hover:bg-slate-800 hover:border-slate-600 transition-colors">
-          Today
-        </button>
+        <div className="flex items-center gap-2">
+          <input
+            type="date"
+            value={trackDate}
+            onChange={(e) => setTrackDate(e.target.value)}
+            className="flex-1 min-w-0 px-3 py-2 bg-slate-950 border border-slate-700 text-slate-100 rounded-lg text-sm focus:outline-none focus:border-blue-500 cursor-pointer"
+          />
+          <button onClick={() => setTrackDate(todayStr())} className="cursor-pointer shrink-0 text-xs px-3 py-2 border border-slate-700 text-slate-300 rounded-lg hover:bg-slate-800 hover:border-slate-600 transition-colors">
+            Today
+          </button>
+        </div>
       </div>
 
       {/* SUMMARY */}
       {data.length > 0 && (
-        <div className="grid grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-3 gap-3 mb-6">
           {[
             { label: "Targets Assigned", value: `${withTargets.length} / ${data.length}`, color: "text-blue-400" },
             { label: `Calls on ${trackDate === todayStr() ? "Today" : trackDate}`, value: totalCallsToday, color: "text-slate-200" },
@@ -125,28 +127,28 @@ export default function Targets() {
 
             return (
               <div key={emp.employee_id} className="bg-slate-900 border border-slate-800 rounded-xl p-4 hover:border-slate-600 transition-colors">
-                <div className="flex items-center justify-between gap-4 flex-wrap">
+                <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-3 flex-wrap mb-1">
+                    <div className="flex items-center gap-2 flex-wrap mb-1">
                       <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 rounded-full bg-blue-600/20 text-blue-400 flex items-center justify-center text-xs font-bold">
+                        <div className="w-7 h-7 rounded-full bg-blue-600/20 text-blue-400 flex items-center justify-center text-xs font-bold shrink-0">
                           {emp.employee_name?.charAt(0)?.toUpperCase()}
                         </div>
-                        <h3 className="text-slate-200 text-sm font-semibold">{emp.employee_name}</h3>
+                        <h3 className="text-slate-200 text-sm font-semibold truncate">{emp.employee_name}</h3>
                       </div>
                       {badge(emp.calls_done, emp.target_count)}
                     </div>
                     <div className="flex items-center gap-4 text-xs flex-wrap text-slate-400">
                       <span>Calls today: <span className="text-slate-200 font-medium">{emp.calls_done}</span></span>
                       {emp.target_count !== null && !isEditing && (
-                        <span>Daily target: <span className="text-blue-400 font-medium">{emp.target_count}</span></span>
+                        <span>Target: <span className="text-blue-400 font-medium">{emp.target_count}/day</span></span>
                       )}
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 shrink-0">
+                  <div className="shrink-0">
                     {isEditing ? (
-                      <>
+                      <div className="flex flex-col gap-2 items-end">
                         <input
                           type="number"
                           min="1"
@@ -155,19 +157,21 @@ export default function Targets() {
                           onKeyDown={(e) => { if (e.key === "Enter") saveTarget(emp); if (e.key === "Escape") cancelEdit(emp.employee_id); }}
                           placeholder="Calls / day"
                           autoFocus
-                          className="w-28 px-3 py-1.5 bg-slate-950 border border-slate-700 text-slate-100 rounded-lg text-sm focus:outline-none focus:border-blue-500"
+                          className="w-28 px-3 py-1.5 bg-slate-950 border border-slate-700 text-slate-100 rounded-lg text-sm focus:outline-none focus:border-blue-500 text-right"
                         />
-                        <button onClick={() => saveTarget(emp)} disabled={isSaving} className="cursor-pointer flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-lg disabled:opacity-50 transition-colors">
-                          <FaSave className="text-[10px]" />
-                          {isSaving ? "..." : "Save"}
-                        </button>
-                        <button onClick={() => cancelEdit(emp.employee_id)} className="cursor-pointer px-3 py-1.5 border border-slate-700 text-slate-300 text-xs rounded-lg hover:bg-slate-800 transition-colors">
-                          Cancel
-                        </button>
-                      </>
+                        <div className="flex gap-1.5">
+                          <button onClick={() => cancelEdit(emp.employee_id)} className="cursor-pointer px-2.5 py-1.5 border border-slate-700 text-slate-300 text-xs rounded-lg hover:bg-slate-800 transition-colors">
+                            Cancel
+                          </button>
+                          <button onClick={() => saveTarget(emp)} disabled={isSaving} className="cursor-pointer flex items-center gap-1 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-lg disabled:opacity-50 transition-colors">
+                            <FaSave className="text-[10px]" />
+                            {isSaving ? "..." : "Save"}
+                          </button>
+                        </div>
+                      </div>
                     ) : (
-                      <>
-                        <button onClick={() => startEdit(emp)} className="cursor-pointer flex items-center gap-1.5 px-3 py-1.5 border border-slate-700 text-slate-300 text-xs rounded-lg hover:bg-slate-800 hover:border-slate-600 transition-colors">
+                      <div className="flex items-center gap-1.5">
+                        <button onClick={() => startEdit(emp)} className="cursor-pointer flex items-center gap-1.5 px-3 py-1.5 border border-slate-700 text-slate-300 text-xs rounded-lg hover:bg-slate-800 hover:border-slate-600 transition-colors whitespace-nowrap">
                           <FaEdit className="text-[10px]" />
                           {emp.target_count !== null ? "Edit" : "Set Target"}
                         </button>
@@ -176,7 +180,7 @@ export default function Targets() {
                             <FaTrash className="text-xs" />
                           </button>
                         )}
-                      </>
+                      </div>
                     )}
                   </div>
                 </div>

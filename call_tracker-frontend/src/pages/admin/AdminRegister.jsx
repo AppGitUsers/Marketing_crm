@@ -36,12 +36,12 @@ export default function AdminRegister() {
 
   return (
     <div>
-      <div className="mb-6">
+      <div className="mb-5">
         <h1 className="text-xl font-semibold text-white">Register User</h1>
         <p className="text-sm text-slate-400 mt-0.5">Create a new employee or admin account</p>
       </div>
 
-      <div className="max-w-md">
+      <div className="w-full max-w-md">
         <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
           <div className="flex items-center gap-3 mb-5">
             <div className="w-9 h-9 rounded-lg bg-blue-600/20 text-blue-400 flex items-center justify-center">
